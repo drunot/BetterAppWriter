@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This file is NOT compatible with Silverlight-->
+<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Stretch="Uniform">
+  <Canvas Name="Layer_1" Canvas.Left="0" Canvas.Top="0" Width="190" Height="190">
+    <Canvas.RenderTransform>
+      <TranslateTransform X="0" Y="0"/>
+    </Canvas.RenderTransform>
+    <Canvas.Resources/>
+    <!--Unknown tag: sodipodi:namedview-->
+    <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path50" Fill="#000000">
+      <Path.Data>
+        <PathGeometry Figures="M170 0H20C9 0 0 9 0 20v150c0 11 9 20 20 20h150c11 0 20-9 20-20V20C190 9 181 0 170 0z M170 165  c0 2.8-2.2 5-5 5H25c-2.8 0-5-2.2-5-5V25c0-2.8 2.2-5 5-5h140c2.8 0 5 2.2 5 5V165z" FillRule="NonZero"/>
+      </Path.Data>
+    </Path>
+    <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path52" Fill="#000000">
+      <Path.Data>
+        <PathGeometry Figures="M47.4 140.3c-2.6 0-5.1-1-7.1-2.9c-3.9-3.9-3.9-10.2 0-14.1l36.1-36.1L40.4 51.1c-3.9-3.9-3.9-10.2 0-14.1  s10.2-3.9 14.1 0l43.1 43.1c1.9 1.9 2.9 4.4 2.9 7.1c0 2.7-1.1 5.2-2.9 7.1l-43.1 43.1C52.5 139.3 50 140.3 47.4 140.3z" FillRule="NonZero"/>
+      </Path.Data>
+    </Path>
+    <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path54" Fill="#000000">
+      <Path.Data>
+        <PathGeometry Figures="M144.2 154H99.1c-5.5 0-10-4.5-10-10s4.5-10 10-10h45.1c5.5 0 10 4.5 10 10S149.7 154 144.2 154z" FillRule="NonZero"/>
+      </Path.Data>
+    </Path>
+  </Canvas>
+</Viewbox>

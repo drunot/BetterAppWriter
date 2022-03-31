@@ -1,0 +1,1 @@
+target_sources(nlp PRIVATE  ${CMAKE_CURRENT_LIST_DIR}/sharploader.cpp  ${CMAKE_CURRENT_LIST_DIR}/sharploader.hpp)
