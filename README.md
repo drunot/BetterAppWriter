@@ -36,7 +36,6 @@ This is the currently planed features. This list is not final and features might
 - Rebinding of exiting shortcuts
 - Addition shortcuts e.g. increasing/decreasing the reading speed.
 - Option to have the system ignore all inputs that are assigned to a shortcut in AppWriter.
-- Hide/Show the toolbar + both as a keyboard shortcut and as a menu option on the taskbar icon and in the toolbar menu.
 - Opetion for the writing prediction bar to prefering beeing on top of the curor instead of on buttom.
 - Adding the Better AppWriter settings to the toolbar menu.
 - Translation support for all aditional texts added by the addon so they follow the selected application language. (I'll only be able to do Danish and English myself)
@@ -53,3 +52,7 @@ Right now the building process is not very organised:
 - `nlp.dll` should be placed in `/<InstallPath>/Lib/` **NOT** overwriting the original. (The original should be renamed `real_nlp.dll`)
 - `System.Windows.Interactivity.dll` should be placed in `/<InstallPath>/`.
 - The rest of the dll files should be placed in should be placed in `/<InstallPath>/Lib/`.
+
+## Licence
+
+This product is under the GPL 3.0 Licence. Lib.Harmony, Newtonsoft.Json and WarpDLL is under MIT Licence. Expression.Blend.Sdk has not specified a licence.
