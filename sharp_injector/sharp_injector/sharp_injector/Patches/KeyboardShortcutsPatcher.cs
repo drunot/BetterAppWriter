@@ -1,6 +1,7 @@
 ﻿using BetterAW;
 using Newtonsoft.Json;
 using sharp_injector.Debug;
+using sharp_injector.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Text;
 using System.Windows;
 using sharp_injector.DTO;
 using System.IO;
+using System.Windows.Controls;
 
 namespace sharp_injector.Patches {
 
@@ -21,11 +23,16 @@ namespace sharp_injector.Patches {
 
         }
 
-        static KeyboardShortcutInfo? GetDataFromContextMenuItem(FieldInfo MenuItemInfo, object context) {
+        static KeyboardShortcutInfo GetDataFromContextMenuItem(FieldInfo MenuItemInfo, object context) {
             KeyboardShortcutInfo c = new KeyboardShortcutInfo();
             // Get the values of the MenuItem to propagate KeyboardShortcutInfo
             c.Name = MenuItemInfo.Name;
             object MenuItem = MenuItemInfo.GetValue(context);
+            // Ignore hidden elements.
+            if (((UIElement)MenuItem).Visibility != Visibility.Visible)
+            {
+                return null;
+            }
             c.ShortcutText = (string)((PropertyInfo)MenuItem.GetType().GetMember("MenuItemContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
             c.Icon = ((PropertyInfo)MenuItem.GetType().GetMember("MenuItemIcon", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
 
@@ -51,6 +58,7 @@ namespace sharp_injector.Patches {
         static object predictionWindow_;
         static object appWriterService_;
         static object toolbarWindow_;
+        static object languageWindow_;
         static Type appWriterServiceType_;
         // Holds the types for the dynamic DynamicMethod alocator.
         static Type[] injectedKeyEventTypes;
@@ -63,6 +71,7 @@ namespace sharp_injector.Patches {
                 toolbarWindow_ = toolbarWindow;
                 appWriterServiceType_ = Type.GetType("AppWriter.AppWriterService,AppWriter.Core");
                 appWriterService_ = toolbarWindow_.GetType().GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindow_);
+                languageWindow_ = toolbarWindow_.GetType().GetField("_languageWindow", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindow_);
                 // Register this patch.
                 PatchRegister.RegisterPatch(this);
 
@@ -72,8 +81,8 @@ namespace sharp_injector.Patches {
         }
 
         // Add a keyboardshortcut to be handled.
-        public static KeyboardShortcutInfo? RegisterKeyboardShortcut(KeyboardShortcutInfo keyboardShortcutInfo) {
-            KeyboardShortcutInfo? ret = null;
+        public static KeyboardShortcutInfo RegisterKeyboardShortcut(KeyboardShortcutInfo keyboardShortcutInfo, bool saveAfter = true) {
+            KeyboardShortcutInfo ret = null;
             foreach (var shortcut in RegisteredKeyboardShortcut) {
                 if (shortcut == keyboardShortcutInfo.keyBinding) {
                     ret = shortcut;
@@ -83,7 +92,9 @@ namespace sharp_injector.Patches {
                 RegisteredKeyboardShortcut.Remove(keyboardShortcutInfo);
             }
             RegisteredKeyboardShortcut.Add(keyboardShortcutInfo);
-            SaveSettings(settingsPath);
+            if (saveAfter) {
+                SaveSettings(settingsPath);
+            }
             return ret;
         }
 
@@ -202,20 +213,19 @@ namespace sharp_injector.Patches {
                                 if (((FieldInfo)elem).FieldType.Name == "ContextMenuItem")
                                 {
                                     var info = GetDataFromContextMenuItem((FieldInfo)elem, writeMenu);
-                                    if (info != null)
+                                    if (!(info is null))
                                     {
-                                        KeyboardShortcutInfo infoNonNull = ((KeyboardShortcutInfo)info);
                                         foreach (var setting in settings)
                                         {
                                             Terminal.Print($"setting.Name: {setting.Name}\n");
-                                            Terminal.Print($"infoNonNull.Name: {infoNonNull.Name}\n");
-                                            if (setting.Name == infoNonNull.Name)
+                                            Terminal.Print($"infoNonNull.Name: {info.Name}\n");
+                                            if (setting.Name == info.Name)
                                             {
-                                                infoNonNull.keyBinding = setting.keyBinding;
-                                                RegisterKeyboardShortcut(infoNonNull);
+                                                info.keyBinding = setting.keyBinding;
+                                                RegisterKeyboardShortcut(info, false);
                                             }
                                         }
-                                        KeyboardShortcuts.AddShortcut(keyName, infoNonNull);
+                                        KeyboardShortcuts.AddShortcut(keyName, info);
                                     }
                                 }
                             }
@@ -233,6 +243,56 @@ namespace sharp_injector.Patches {
             }
         }
 
+        private static void LanguageToggleShortcuts()
+        {
+            try
+            {
+                StackPanel LanguageList = (StackPanel)languageWindow_.GetType().GetField("LanguageList", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(languageWindow_);
+                Dictionary<string, object> icons = new Dictionary<string, object>();
+                LanguageList.Dispatcher.Invoke(new Action(() =>
+                {
+                    foreach (var contextMenu in LanguageList.Children)
+                    {
+                        //MenuItemIcon
+                        object icon = Type.GetType("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements").GetProperty("MenuItemIcon", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(contextMenu, null);
+                        string lang = (string)((FrameworkElement)contextMenu).Tag;
+                        Terminal.Print($"{lang}\n");
+                        icons.Add(lang, icon);
+                    }
+                }));
+                ClassPrinter.PrintMembers("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements");
+                var categoryName = "Toggle langauges shortcut";
+                KeyboardShortcutInfo firstInfo = new KeyboardShortcutInfo();
+                firstInfo.ShortcutText = Translation.ShortcutToggleLanguages;
+                firstInfo.Name = "LangToggle";
+                firstInfo.ShortcutEvent = () => { };
+                var settings = LoadSettngs(settingsPath).Where(x => x.Name == firstInfo.Name).ToArray();
+                if(settings.Length > 0)
+                {
+                    firstInfo.keyBinding = settings[0].keyBinding;
+                    RegisterKeyboardShortcut(firstInfo, false);
+                }
+                var langauges = new SortedDictionary<string,string>(AppWriterServicePatcher.GetAvalibleLanguage().ToDictionary(x => Translations.GetString(x.Replace("-", "_")), x => x));
+                KeyboardShortcuts.AddShortcut(categoryName, firstInfo);
+                foreach (var langauge in langauges)
+                {
+                    LanguageShortcutInfo lang = new LanguageShortcutInfo();
+                    lang.ShortcutText = langauge.Key;
+                    lang.Name = langauge.Value;
+                    if (icons.ContainsKey(lang.Name))
+                    {
+                        lang.Icon = icons[lang.Name];
+                    }
+                    KeyboardShortcuts.AddShortcut(categoryName, lang);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
+            }
+        }
+
         // Do the patching
         public void Patch()
         {
@@ -240,6 +300,7 @@ namespace sharp_injector.Patches {
             {
                 FindShortcuts("_writeWindow", "WriteSettingsBtn");
                 FindShortcuts("_readWindow", "ReadSettingsBtn");
+                LanguageToggleShortcuts();
                 KeyboardShortcuts.RekordingKeysDelegate = (onUpEvent) => { onUpKey = onUpEvent; };
                 KeyboardShortcuts.RegisterShortcutDelegate = (getKeys) => {
                     try

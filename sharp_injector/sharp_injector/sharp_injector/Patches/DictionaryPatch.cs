@@ -85,7 +85,6 @@ namespace sharp_injector.Patches
                  
                 if (source != null)
                 {
-                    Terminal.Print($"zoom: {String.Format("  {0:F20}", source.CompositionTarget.TransformToDevice.M11)}\n");
                     Browser_.SetZoom(source.CompositionTarget.TransformToDevice.M11);
                 }
             }

@@ -23,7 +23,9 @@ namespace sharp_injector.Patches
             PatchRegister.RegisterPatch(this);
             toolbarWindowWindow_ = toolbarWindowWindow;
             appWriterServiceType_ = Type.GetType("AppWriter.AppWriterService,AppWriter.Core");
+            ClassPrinter.PrintMembers("AppWriter.Xaml.Elements.Translation.Translations,AppWriter.Core");
             appWriterService_ = toolbarWindowWindow_.GetType().GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindowWindow_);
+            
         }
 
         static void LanguagePatch(string currentLanguges)
@@ -57,6 +59,22 @@ namespace sharp_injector.Patches
                 default:
                     break;
             }
+        }
+
+        public static List<string> GetAvalibleLanguage()
+        {
+            try
+            {
+                object UserInfo = appWriterServiceType_.GetProperty("UserInfo", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(appWriterService_, null);
+                object AWLicenseInfo = Type.GetType("AppWriter.LingApps_API.UserInfo,AppWriter.Core").GetProperty("AWLicenseInfo", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(UserInfo, null);
+                object Settings = Type.GetType("AppWriter.LingApps_API.LicenseInfo,AppWriter.Core").GetField("Settings", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(AWLicenseInfo);
+                return (List<string>)Type.GetType("AppWriter.LingApps_API.LicenseSettings,AppWriter.Core").GetField("Languages", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(Settings);
+            }
+            catch (Exception ex)
+            {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
+            }
+            return null;
         }
         public void Patch()
         {

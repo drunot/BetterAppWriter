@@ -13,5 +13,6 @@ namespace BetterAW
         public static string BetterAppWriterVersion = "Better AppWriter Version: {0}";
         public static string KeyboardShortcutsTooltip = "Keyboard shortcuts";
         public static string TerminalButtonTooltip = "Open/Close Terminal (For developers)";
+        public static string ShortcutToggleLanguages = "Toggle selected languages.";
     }
 }

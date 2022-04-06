@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows;
 using sharp_injector.Debug;
+using sharp_injector.Helpers;
 using System.Threading;
 using System.Reflection.Emit;
 
@@ -59,6 +60,10 @@ namespace sharp_injector.Patches
                         DictionaryPatch tw = new DictionaryPatch(dictionaryWindow);
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
                         PatchRegister.DoPatching();
+                        foreach(var lang in AppWriterServicePatcher.GetAvalibleLanguage())
+                        {
+                            Terminal.Print($"{Translations.GetString(lang.Replace("-","_"))}\n");
+                        }
                     });
                     thread.Start();
                 }
@@ -86,7 +91,7 @@ namespace sharp_injector.Patches
                 menuContextWindow = ((FieldInfo)_menuWindowType[0]).GetValue(__instance);
                 if (menuContextWindow != null && toolBarWindow != null && dictionaryWindow != null)
                 {
-                    Terminal.Print("Toolbar Window contexts found\n");
+                    Terminal.Print("Window contexts found\n");
                 }
 
             }

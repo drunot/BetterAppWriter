@@ -15,8 +15,15 @@ using System.Windows.Shapes;
 namespace BetterAW {
 
     public delegate void ShortcutEvent();
-    public struct KeyboardShortcutInfo
+    public class BaseShortcutInfo
     {
+        public string Name;
+        public string ShortcutText;
+        public object Icon;
+    }
+    public class KeyboardShortcutInfo : BaseShortcutInfo
+        {
+        public KeyboardShortcutInfo() { }
         public KeyboardShortcutInfo(string name)
         {
             Name = name;
@@ -26,17 +33,18 @@ namespace BetterAW {
             Icon = null;
         }
 
-        public string Name;
-        public string ShortcutText;
         public ShortcutEvent ShortcutEvent;
         public HashSet<System.Windows.Forms.Keys> keyBinding;
-        public object Icon;
 
         /* Make it much easier to compaire the things. */
         /* Do to how this should work in many plases both the hash creation and the object compairation is limited to only check the name */
         /* If keyboard shortcut should be compaired be explicit. */
         public static bool Equals(KeyboardShortcutInfo a, KeyboardShortcutInfo b)
         {
+            if(a is null || b is null)
+            {
+                return a is null && b is null;
+            }
             return a.Name == b.Name;
         }
         public bool Equals(KeyboardShortcutInfo a)
@@ -100,27 +108,30 @@ namespace BetterAW {
             return Name.GetHashCode();
         }
     }
+    public class LanguageShortcutInfo : BaseShortcutInfo { }
     public partial class KeyboardShortcuts : Window
     {
         public delegate void RekordingKey(HashSet<System.Windows.Forms.Keys> newShortcut);
         public delegate void StartRekordingKeys(RekordingKey pressedKeys);
-        public delegate KeyboardShortcutInfo? RegisterShortcut(KeyboardShortcutInfo newShortcut);
+        public delegate KeyboardShortcutInfo RegisterShortcut(KeyboardShortcutInfo newShortcut);
         public static StartRekordingKeys RekordingKeysDelegate = (pressedKeys) => { };
         public static RegisterShortcut RegisterShortcutDelegate = (e) => e;
         public static List<UIElement> stackElements = null;
-        public static Dictionary<string, List<KeyboardShortcutInfo>> Shortcuts { get; private set; } = new Dictionary<string, List<KeyboardShortcutInfo>>();
+        public static Dictionary<string, List<BaseShortcutInfo>> Shortcuts { get; private set; } = new Dictionary<string, List<BaseShortcutInfo>>();
         // Add shortcut to the window.
-        public static void AddShortcut(string name, KeyboardShortcutInfo Shortcut)
+        public static void AddShortcut(string name, BaseShortcutInfo Shortcut)
         {
             try 
-            { 
+            {
                 if (Shortcuts.Keys.Contains(name))
                 {
                     Shortcuts[name].Add(Shortcut);
-                } else
-                {
-                Shortcuts[name] = new List<KeyboardShortcutInfo> { Shortcut };
                 }
+                else
+                {
+                    Shortcuts[name] = new List<BaseShortcutInfo> { Shortcut };
+                }
+
             }
             catch (Exception ex)
             {
@@ -131,7 +142,7 @@ namespace BetterAW {
         public void LoadShortcuts() {
             try 
             {
-                foreach (KeyValuePair<string, List<KeyboardShortcutInfo>> entry in Shortcuts)
+                foreach (KeyValuePair<string, List<BaseShortcutInfo>> entry in Shortcuts)
                 {
                     KeyboardShortcutLabel label = new KeyboardShortcutLabel();
                     label.Content = entry.Key;
@@ -173,9 +184,15 @@ namespace BetterAW {
                             }
                         }));
                     };
-                    foreach (KeyboardShortcutInfo shortcutInfo in entry.Value)
+                    foreach (BaseShortcutInfo shortcutInfo in entry.Value)
                     {
-                        this.ContentPanel.Children.Add(new KeyboardShortcut(shortcutInfo));
+                        if(shortcutInfo.GetType() == typeof(KeyboardShortcutInfo))
+                        {
+                            this.ContentPanel.Children.Add(new KeyboardShortcut((KeyboardShortcutInfo)shortcutInfo));
+                        } else if(shortcutInfo.GetType() == typeof(LanguageShortcutInfo))
+                        {
+                            this.ContentPanel.Children.Add(new LanguageShortcut((LanguageShortcutInfo)shortcutInfo));
+                        }
                     }
                 }
             } catch (Exception ex) {
