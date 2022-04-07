@@ -55,4 +55,4 @@ Right now the building process is not very organised:
 
 ## Licence
 
-This product is under the GPL 3.0 Licence. Lib.Harmony, Newtonsoft.Json and WarpDLL is under MIT Licence. Expression.Blend.Sdk has not specified a licence.
+This product is under the GPL 3.0 Licence. Microsoft.Xaml.Behaviors, Lib.Harmony, Newtonsoft.Json and WarpDLL is under the MIT Licence.
