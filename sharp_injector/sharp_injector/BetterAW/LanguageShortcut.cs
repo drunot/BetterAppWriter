@@ -13,7 +13,9 @@ namespace BetterAW
         // To Do: move EnabledLanguage responsibility away from this class
         public static HashSet<string> EnabledLanguage { get; private set; } = new HashSet<string>();
         private readonly string _id;
-
+        
+        public delegate void ChnagedCheked(bool isChecked);
+        public static ChnagedCheked ChnagedChekedEvent = (ChnagedCheked) => { };
         public LanguageShortcut()
         {
             _id = string.Empty;
@@ -59,11 +61,13 @@ namespace BetterAW
                 SetValue(CheckedEventProperty, new RelayCommand(() => {
                     Terminal.Print($"Checked: {_id}\n");
                     EnabledLanguage.Add(_id);
+                    ChnagedChekedEvent(true);
                     }));
                 SetValue(UncheckedEventProperty, new RelayCommand(() => {
                     Terminal.Print($"Unchecked: {_id}\n");
                     EnabledLanguage.Remove(_id);
-                    }));
+                    ChnagedChekedEvent(false);
+                }));
                 SetValue(CheckedProperty, info.Selected);
                 if (info.Selected)
                 {

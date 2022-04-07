@@ -336,7 +336,8 @@ namespace sharp_injector.Patches {
                     }
                     KeyboardShortcuts.AddShortcut(categoryName, lang);
                 }
-
+                // Make Language shortcut changes save the json file:
+                LanguageShortcut.ChnagedChekedEvent = (checkedChnaged) => SaveSettings(settingsPath);
             }
             catch (Exception ex)
             {
