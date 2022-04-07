@@ -108,7 +108,9 @@ namespace BetterAW {
             return Name.GetHashCode();
         }
     }
-    public class LanguageShortcutInfo : BaseShortcutInfo { }
+    public class LanguageShortcutInfo : BaseShortcutInfo {
+        public bool Selected;
+    }
     public partial class KeyboardShortcuts : Window
     {
         public delegate void RekordingKey(HashSet<System.Windows.Forms.Keys> newShortcut);

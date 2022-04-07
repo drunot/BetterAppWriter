@@ -8,17 +8,35 @@ using System.Windows.Controls;
 
 namespace BetterAW
 {
-    internal class LanguageShortcut : Control
+    public class LanguageShortcut : Control
     {
-        public static HashSet<string> EnabledLanguage { get; private set; }
+        // To Do: move EnabledLanguage responsibility away from this class
+        public static HashSet<string> EnabledLanguage { get; private set; } = new HashSet<string>();
         private readonly string _id;
+
+        public LanguageShortcut()
+        {
+            _id = string.Empty;
+            SetValue(CheckedEventProperty, new RelayCommand(() => {
+                Terminal.Print($"Checked: {_id}\n");
+            }));
+            SetValue(UncheckedEventProperty, new RelayCommand(() => {
+                Terminal.Print($"Unchecked: {_id}\n");
+            }));
+        }
         public LanguageShortcut(string id)
         {
             try
             {
                 _id = id;
-                SetValue(CheckedEventProperty, new RelayCommand(() => EnabledLanguage.Add(_id)));
-                SetValue(UncheckedEventProperty, new RelayCommand(() => EnabledLanguage.Remove(_id)));
+                SetValue(CheckedEventProperty, new RelayCommand(() => {
+                    Terminal.Print($"Checked: {_id}\n");
+                    EnabledLanguage.Add(_id);
+                }));
+                SetValue(UncheckedEventProperty, new RelayCommand(() => {
+                    Terminal.Print($"Unchecked: {_id}\n");
+                    EnabledLanguage.Remove(_id);
+                }));
             }
             catch (Exception ex)
             {
@@ -38,8 +56,19 @@ namespace BetterAW
 
                 }
                 SetValue(ShortcutTextProperty, info.ShortcutText);
-                SetValue(CheckedEventProperty, new RelayCommand(() => EnabledLanguage.Add(_id)));
-                SetValue(UncheckedEventProperty, new RelayCommand(() => EnabledLanguage.Remove(_id)));
+                SetValue(CheckedEventProperty, new RelayCommand(() => {
+                    Terminal.Print($"Checked: {_id}\n");
+                    EnabledLanguage.Add(_id);
+                    }));
+                SetValue(UncheckedEventProperty, new RelayCommand(() => {
+                    Terminal.Print($"Unchecked: {_id}\n");
+                    EnabledLanguage.Remove(_id);
+                    }));
+                SetValue(CheckedProperty, info.Selected);
+                if (info.Selected)
+                {
+                    EnabledLanguage.Add(_id);
+                }
             }
             catch (Exception ex)
             {
@@ -69,13 +98,13 @@ namespace BetterAW
         public static readonly DependencyProperty UncheckedEventProperty = DependencyProperty.Register("UncheckedEvent", typeof(RelayCommand), typeof(LanguageShortcut), new UIPropertyMetadata(new RelayCommand()));
 
 
-        public bool Checked
+        public bool? Checked
         {
-            get { return (bool)GetValue(CheckedProperty); }
+            get { return (bool?)GetValue(CheckedProperty); }
             set { SetValue(CheckedProperty, value); }
         }
 
-        public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool), typeof(LanguageShortcut));
+        public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool?), typeof(LanguageShortcut));
 
         public object Icon
         {

@@ -12,6 +12,7 @@ using System.Windows;
 using sharp_injector.DTO;
 using System.IO;
 using System.Windows.Controls;
+using Newtonsoft.Json.Linq;
 
 namespace sharp_injector.Patches {
 
@@ -104,10 +105,17 @@ namespace sharp_injector.Patches {
             if (!File.Exists(Path.GetDirectoryName(path))) {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }
-            string toSave = JsonConvert.SerializeObject(RegisteredKeyboardShortcut.Select(x => JSONKeybinding.FromKeyboardShortcutInfo(x)));
+            
+            string toSave = JsonConvert.SerializeObject(((object[])RegisteredKeyboardShortcut.Select(x => JSONKeybinding.FromKeyboardShortcutInfo(x)).ToArray()).Concat(LanguageShortcut.EnabledLanguage.Select(x =>
+            {
+                var k = new JSONLanguage();
+                k.Name = x;
+                k.Selected = true;
+                return k;
+            }).ToArray()));
             File.WriteAllText(path, toSave);
         }
-        public static KeyboardShortcutInfo[] LoadSettngs(string path)
+        public static JObject[] LoadSettngs(string path)
         {
 
             if (!File.Exists(path))
@@ -115,17 +123,27 @@ namespace sharp_injector.Patches {
                 return null;
             }
             string data = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<JSONKeybinding[]>(data).Select(x => x.ToKeyboardShortcutInfo()).ToArray();
+            return JsonConvert.DeserializeObject<JObject[]>(data);
         }
 
         /* Unregister a keyboard shortcut */
-        public static bool UnregisterKeyboardShortcut(string Name) {
-            return RegisteredKeyboardShortcut.Remove(new KeyboardShortcutInfo(Name));
+        public static bool UnregisterKeyboardShortcut(string Name, bool saveAfter = true) {
+            var ret = RegisteredKeyboardShortcut.Remove(new KeyboardShortcutInfo(Name));
+            if (saveAfter)
+            {
+                SaveSettings(settingsPath);
+            }
+            return ret;
         }
 
-        public static bool UnregisterKeyboardShortcut(KeyboardShortcutInfo keyboardShortcutInfo)
+        public static bool UnregisterKeyboardShortcut(KeyboardShortcutInfo keyboardShortcutInfo, bool saveAfter = true)
         {
-            return RegisteredKeyboardShortcut.Remove(keyboardShortcutInfo);
+            var ret = RegisteredKeyboardShortcut.Remove(keyboardShortcutInfo);
+            if (saveAfter)
+            {
+                SaveSettings(settingsPath);
+            }
+            return ret;
         }
 
         // Handle pressed keys.
@@ -217,11 +235,11 @@ namespace sharp_injector.Patches {
                                     {
                                         foreach (var setting in settings)
                                         {
-                                            Terminal.Print($"setting.Name: {setting.Name}\n");
+                                            Terminal.Print($"setting.Name: {setting["Name"]}\n");
                                             Terminal.Print($"infoNonNull.Name: {info.Name}\n");
-                                            if (setting.Name == info.Name)
+                                            if ((string)setting["Name"] == info.Name)
                                             {
-                                                info.keyBinding = setting.keyBinding;
+                                                info.keyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().keyBinding;
                                                 RegisterKeyboardShortcut(info, false);
                                             }
                                         }
@@ -242,7 +260,31 @@ namespace sharp_injector.Patches {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
-
+        public static void ToggleLanguage()
+        {
+            if(LanguageShortcut.EnabledLanguage.Count <= 0)
+            {
+                return;
+            }
+            else
+            {
+                var method = appWriterService_.GetType().GetMethod("ChangeProfile", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                bool found = false;
+                string curLang = AppWriterServicePatcher.GetCurrentLanguage();
+                foreach(var lang in LanguageShortcut.EnabledLanguage)
+                {
+                    if(curLang == lang)
+                    {
+                        found = true;
+                    } else if (found)
+                    {
+                        method.Invoke(appWriterService_, new object[]{lang});
+                        return;
+                    }
+                }
+                method.Invoke(appWriterService_, new object[] { LanguageShortcut.EnabledLanguage.First() });
+            }
+        }
         private static void LanguageToggleShortcuts()
         {
             try
@@ -260,16 +302,16 @@ namespace sharp_injector.Patches {
                         icons.Add(lang, icon);
                     }
                 }));
-                ClassPrinter.PrintMembers("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements");
                 var categoryName = "Toggle langauges shortcut";
                 KeyboardShortcutInfo firstInfo = new KeyboardShortcutInfo();
                 firstInfo.ShortcutText = Translation.ShortcutToggleLanguages;
                 firstInfo.Name = "LangToggle";
-                firstInfo.ShortcutEvent = () => { };
-                var settings = LoadSettngs(settingsPath).Where(x => x.Name == firstInfo.Name).ToArray();
-                if(settings.Length > 0)
+                firstInfo.ShortcutEvent = ToggleLanguage;
+                var settings = LoadSettngs(settingsPath);
+                var langSettings = settings.Where(x => (string)x["Name"] == firstInfo.Name).ToArray();
+                if (langSettings.Length > 0)
                 {
-                    firstInfo.keyBinding = settings[0].keyBinding;
+                    firstInfo.keyBinding = JSONKeybinding.FromJObject(langSettings[0]).ToKeyboardShortcutInfo().keyBinding;
                     RegisterKeyboardShortcut(firstInfo, false);
                 }
                 var langauges = new SortedDictionary<string,string>(AppWriterServicePatcher.GetAvalibleLanguage().ToDictionary(x => Translations.GetString(x.Replace("-", "_")), x => x));
@@ -282,6 +324,15 @@ namespace sharp_injector.Patches {
                     if (icons.ContainsKey(lang.Name))
                     {
                         lang.Icon = icons[lang.Name];
+                    }
+                    foreach (var setting in settings)
+                    {
+                        if ((string)setting["Name"] == lang.Name)
+                        {
+                            lang.Selected = (bool)setting["Selected"];
+                            LanguageShortcut.EnabledLanguage.Add(lang.Name);
+                            break;
+                        }
                     }
                     KeyboardShortcuts.AddShortcut(categoryName, lang);
                 }

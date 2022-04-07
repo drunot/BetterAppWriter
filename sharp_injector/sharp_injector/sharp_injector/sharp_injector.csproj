@@ -62,6 +62,7 @@
     <Compile Include="Debug\ClassPrinter.cs" />
     <Compile Include="Debug\FilePrinter.cs" />
     <Compile Include="DTO\JSONKeybinding.cs" />
+    <Compile Include="DTO\JSONLanguage.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\Translations.cs" />
     <Compile Include="Patches\AppWriterServicePatcher.cs" />

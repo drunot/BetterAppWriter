@@ -5,7 +5,7 @@
 ### Features
 
 - Changed from .net Framework 4.0 to 4.8. (Apperently the version injected can differ from the version the host app is running which is 4.6)
-- Enable keyboard shortcuts for languages toggeling. (Currently work in progress)
+- Enable keyboard shortcuts for languages toggeling.
 
 ### Bugfixes
 

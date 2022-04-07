@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:BetterAW"
-                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors">
+                    xmlns:i="clr-namespace:Microsoft.Xaml.Behaviors;assembly=Microsoft.Xaml.Behaviors">
 
     <Style x:Key="ButtonFocusVisual">
         <Setter Property="Control.Template">
@@ -131,6 +131,7 @@
                             <ContentControl VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"  Margin="5" Width="20" Height="20" Visibility="{TemplateBinding IconVisibility}" Content="{TemplateBinding Icon}"/>
                             <Label Foreground="#4b4b4b" Content="{TemplateBinding ShortcutText}"  Margin="2" VerticalAlignment="Center" />
                         </StackPanel>
+                        <!--{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Checked, Mode=TwoWay}-->
                         <CheckBox Grid.Column="1"  Margin="2" IsChecked="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Checked, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Center">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="Checked" >

@@ -1,4 +1,5 @@
 ﻿using BetterAW;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,14 @@ namespace sharp_injector.DTO
             JSONKeybinding ret = new JSONKeybinding();
             ret.Name = keyboardShortcutInfo.Name;
             ret.KeyBindings = keyboardShortcutInfo.keyBinding.Select(x => ((int)x)).ToArray();
+            return ret;
+        }
+
+        public static JSONKeybinding FromJObject(JObject JObj)
+        {
+            JSONKeybinding ret = new JSONKeybinding();
+            ret.Name = (string)JObj["Name"];
+            ret.KeyBindings = JObj["KeyBindings"].Select(x => ((int)x)).ToArray();
             return ret;
         }
 
