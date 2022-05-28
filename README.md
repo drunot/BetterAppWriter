@@ -10,6 +10,7 @@ What this app currently does add:
 
 - Additonal keyboard shortcuts that are configurable
 - Oxford Advanced Learners dictionary lookups when language set to english (Only avalible online.)
+- Better detection of predictions window position. (This could use even more work though)
 
 ## Installation
 
