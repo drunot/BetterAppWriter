@@ -4,13 +4,18 @@
 
 ### Features
 
-- Changed from .net Framework 4.0 to 4.8. (Apperently the version injected can differ from the version the host app is running which is 4.6)
-- Enable keyboard shortcuts for languages toggeling.
+- Changed from .net Framework 4.0 to 4.8. (Apparently the version injected can differ from the version the host app is running which is 4.6)
+- Enable keyboard shortcuts for languages toggling.
+- Better detection of predictions window position. (This could use even more work though)
 
 ### Bugfixes
 
 - Fixed a bug where only Write setting shortcuts was saved persistently.
 - Fixed a bug where build number was printed as MajorRevision. (Bug not visible in x.x.0 versions).
+
+### Known bugs
+
+- When using some AppWriter built in shortcuts, the key up event is not detected by the better AppWriter shortcut system.
 
 ### Other
 

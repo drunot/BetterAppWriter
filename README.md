@@ -45,7 +45,7 @@ This is the currently planed features. This list is not final and features might
 Right now the building process is not very organised:
 
 - `nlp_loader` is build by a CMake and will generate `nlp.dll`.
-- `sharp_injector` holds `sharp_injector.sln` and will build `BetterAW.dll`, `sharp_injector.dll` and `DictionaryHandler.dll`. It also uses `Newtonsoft.Json.dll`, `0Harmony.dll` and `System.Windows.Interactivity.dll`, the latter two beeing NuGet packages. (Named `Lib.Harmony` and `Expression.Blend.Sdk` respectively) All build file from the sharp_injector solution will end up in the sharp_injector project build folder. Right now only the debug build of all C# projects have been tested.
+- `sharp_injector` holds `sharp_injector.sln` and will build `BetterAW.dll`, `sharp_injector.dll`, `DictionaryHandler.dll`, and `WinAPIHooks.dll`. It also uses `Newtonsoft.Json.dll`, `0Harmony.dll` and `System.Windows.Interactivity.dll`, the latter two beeing NuGet packages. (Named `Lib.Harmony` and `Expression.Blend.Sdk` respectively) All build file from the sharp_injector solution will end up in the sharp_injector project build folder. Right now only the debug build of all C# projects have been tested.
 
 ### Placement of builded files
 

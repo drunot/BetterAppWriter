@@ -13,43 +13,35 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BetterAW
-{
+namespace BetterAW {
     [ContentProperty("Content")]
-    public class BaseWindowControl : Control
-    {
-        static BaseWindowControl()
-        {
+    public class BaseWindowControl : Control {
+        static BaseWindowControl() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BaseWindowControl), new FrameworkPropertyMetadata(typeof(BaseWindowControl)));
         }
 
-        public BaseWindowControl()
-        {
+        public BaseWindowControl() {
             SetValue(MoveEventProperty, new RelayCommand(() => this.DragMove()));
         }
 
-        public object Content
-        {
+        public object Content {
             get { return (object)GetValue(ContentProperty); }
             set { SetValue(ContentProperty, value); }
         }
 
         public static readonly DependencyProperty ContentProperty = DependencyProperty.Register("Content", typeof(object), typeof(BaseWindowControl));
 
-        public RelayCommand MoveEvent
-        {
+        public RelayCommand MoveEvent {
             get { return (RelayCommand)GetValue(MoveEventProperty); }
             set { SetValue(MoveEventProperty, value); }
         }
         public static readonly DependencyProperty MoveEventProperty = DependencyProperty.Register("MoveEvent", typeof(RelayCommand), typeof(BaseWindowControl), new UIPropertyMetadata());
-    
-        private void DragMove()
-        {
+
+        private void DragMove() {
             Window.GetWindow(this).DragMove();
         }
 
-        public String Title
-        {
+        public String Title {
             get { return (String)GetValue(TitleProperty); }
             set { SetValue(TitleProperty, value); }
         }

@@ -8,20 +8,15 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace BetterAW
-{
-    public class BorderClipConverter : IMultiValueConverter
-    {
+namespace BetterAW {
+    public class BorderClipConverter : IMultiValueConverter {
         #region IMultiValueConverter Members
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (values.Length == 3 && values[0] is double && values[1] is double && values[2] is CornerRadius)
-            {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) {
+            if (values.Length == 3 && values[0] is double && values[1] is double && values[2] is CornerRadius) {
                 var width = (double)values[0];
                 var height = (double)values[1];
 
-                if (width < Double.Epsilon || height < Double.Epsilon)
-                {
+                if (width < Double.Epsilon || height < Double.Epsilon) {
                     return Geometry.Empty;
                 }
 
@@ -38,8 +33,7 @@ namespace BetterAW
             return DependencyProperty.UnsetValue;
         }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) {
             throw new NotSupportedException();
         }
         #endregion

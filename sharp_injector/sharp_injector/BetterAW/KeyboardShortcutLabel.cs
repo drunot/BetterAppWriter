@@ -6,13 +6,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 
-namespace BetterAW
-{
+namespace BetterAW {
     [ContentProperty("Content")]
-    public class KeyboardShortcutLabel : Control
-    {
-        public object Content
-        {
+    public class KeyboardShortcutLabel : Control {
+        public object Content {
             get { return (object)GetValue(ContentProperty); }
             set { SetValue(ContentProperty, value); }
         }

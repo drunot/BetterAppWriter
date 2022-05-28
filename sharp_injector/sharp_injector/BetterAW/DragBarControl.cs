@@ -13,22 +13,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BetterAW
-{
-    public partial class DragBarControl : Control
-    {
-        static DragBarControl()
-        {
+namespace BetterAW {
+    public partial class DragBarControl : Control {
+        static DragBarControl() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(DragBarControl), new FrameworkPropertyMetadata(typeof(DragBarControl)));
         }
 
-        public DragBarControl()
-        {
+        public DragBarControl() {
             SetValue(CloseClickEventProperty, new RelayCommand(() => this.Close()));
         }
 
-        public String Title
-        {
+        public String Title {
             get { return (String)GetValue(TitleProperty); }
             set { SetValue(TitleProperty, value); }
         }
@@ -36,8 +31,7 @@ namespace BetterAW
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register("Title", typeof(string), typeof(DragBarControl));
 
         // 
-        public RelayCommand CloseClickEvent
-        {
+        public RelayCommand CloseClickEvent {
             get { return (RelayCommand)GetValue(CloseClickEventProperty); }
             set { SetValue(CloseClickEventProperty, value); }
         }
@@ -45,8 +39,7 @@ namespace BetterAW
 
         public RelayCommand OtherCloseClickEvent = new RelayCommand();
 
-        private void Close()
-        {
+        private void Close() {
             Window.GetWindow(this).Close();
         }
     }

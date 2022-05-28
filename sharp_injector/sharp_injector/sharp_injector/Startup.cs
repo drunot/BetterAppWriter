@@ -16,25 +16,20 @@ using System.Reflection.Emit;
 using System.Windows.Input;
 using sharp_injector.Patches;
 
-namespace sharp_injector
-{
-    public class Startup
-    {
+namespace sharp_injector {
+    public class Startup {
         [STAThread]
-        static int EntryPoint(string xyzstring)
-        {
+        static int EntryPoint(string xyzstring) {
             // Open terminal
             NewWindowHandler();
-            while (!Terminal.IsReady)
-            {
+            while (!Terminal.IsReady) {
 
             }
             PatchEntryPoint.Patch();
             return 0;
         }
 
-        private static void NewWindowHandler()
-        {
+        private static void NewWindowHandler() {
             // Open window in other thread.
             Thread newWindowThread = new Thread(new ThreadStart(ThreadStartingPoint));
             newWindowThread.SetApartmentState(ApartmentState.STA);
@@ -42,8 +37,7 @@ namespace sharp_injector
             newWindowThread.Start();
         }
 
-        private static void ThreadStartingPoint()
-        {
+        private static void ThreadStartingPoint() {
             // Init terminal window.
             Terminal.Initialize();
             System.Windows.Threading.Dispatcher.Run();

@@ -6,14 +6,12 @@ using System.Collections.Generic;
 using System.Windows.Threading;
 using System.Threading;
 
-namespace BetterAW
-{
-    public static class InterceptKeys
-    {
+namespace BetterAW {
+    public static class InterceptKeys {
         //static Dispatcher keyDispacher = null;
         //static Thread keyThread = null;
         static HashSet<Keys> pressedKeys = new HashSet<Keys>();
-        static HashSet<Keys> Dummy = new HashSet<Keys>() { Keys.LMenu, Keys.A};
+        static HashSet<Keys> Dummy = new HashSet<Keys>() { Keys.LMenu, Keys.A };
 
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
@@ -22,8 +20,7 @@ namespace BetterAW
         private static readonly LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
 
-        public static void Hook()
-        {
+        public static void Hook() {
             try {
                 //if (keyThread == null)
                 //{
@@ -39,31 +36,24 @@ namespace BetterAW
                 //}
                 _hookID = SetHook(_proc);
                 Terminal.Print("Hooked\n");
-                
-            }
-            catch (Exception ex)
-            {
+
+            } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
 
-        public static void Unhook()
-        {
-            try { 
+        public static void Unhook() {
+            try {
                 UnhookWindowsHookEx(_hookID);
                 Terminal.Print("Unhooked\n");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
 
-        private static IntPtr SetHook(LowLevelKeyboardProc proc)
-        {
+        private static IntPtr SetHook(LowLevelKeyboardProc proc) {
             using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
-            {
+            using (ProcessModule curModule = curProcess.MainModule) {
                 return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
                     GetModuleHandle(curModule.ModuleName), 0);
             }
@@ -73,28 +63,21 @@ namespace BetterAW
             int nCode, IntPtr wParam, IntPtr lParam);
 
         private static IntPtr HookCallback(
-            int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
-            {
+            int nCode, IntPtr wParam, IntPtr lParam) {
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN) {
                 int vkCode = Marshal.ReadInt32(lParam);
-                if (!pressedKeys.Contains((Keys)vkCode))
-                {
+                if (!pressedKeys.Contains((Keys)vkCode)) {
                     Terminal.Print($"WM_KEYDOWN {(Keys)vkCode}\n");
                     pressedKeys.Add((Keys)vkCode);
-                    if (Dummy.Count == pressedKeys.Count)
-                    {
+                    if (Dummy.Count == pressedKeys.Count) {
                         bool matched = true;
-                        foreach (var key in pressedKeys)
-                        {
-                            if (!Dummy.Contains(key))
-                            {
+                        foreach (var key in pressedKeys) {
+                            if (!Dummy.Contains(key)) {
                                 matched = false;
                                 break;
                             }
                         }
-                        if (matched)
-                        {
+                        if (matched) {
                             Terminal.Print("Command matched!\n");
                             pressedKeys.Add((Keys)vkCode);
                             return (System.IntPtr)(-1);
@@ -102,8 +85,7 @@ namespace BetterAW
                     }
                 }
             }
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYUP)
-            {
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYUP) {
                 int vkCode = Marshal.ReadInt32(lParam);
                 Terminal.Print($"WM_KEYUP {(Keys)vkCode}\n");
                 pressedKeys.Remove((Keys)vkCode);

@@ -5,10 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterAW"
         mc:Ignorable="d"
-        Title="Terminal" Height="450" Width="800" Closing="Window_Closing">
+        Title="Terminal" Height="450" Width="800" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid>
-        <ScrollViewer x:Name ="ScrollViewerTerminal" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <TextBox BorderThickness="0" x:Name="TextBlockTerminal" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch"  Margin="0" Background="Black" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
-        </ScrollViewer>
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Margin="0">
+            <Grid x:Name="Grid_SearchGrid" Width="200" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top" Background="White" Panel.ZIndex="10" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TextBlock_Search" Margin="5" TextWrapping="NoWrap" PreviewTextInput="TextBlock_Search_PreviewTextInput" TextChanged="TextBlock_Search_TextChanged" PreviewKeyUp="TextBlock_Search_PreviewKeyUp" ></TextBox>
+                <Button x:Name="Button_SearchClose" Grid.Column="1" Margin="5" Click="Button_SearchClose_Click"></Button>
+            </Grid>
+            <ScrollViewer x:Name ="ScrollViewerTerminal" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <TextBox Panel.ZIndex="0" BorderThickness="0" Margin="0 0 0 0" x:Name="TextBlockTerminal" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch" Background="Black" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>
