@@ -11,6 +11,7 @@
 
 screenPos getCursorPos() {
     screenPos ret = { 0, 0, 0, 0 };
+    // Do not know what CoInitialize does, but it makes position tracking much more reliable.
     CoInitialize(NULL);
     DPI_AWARENESS_CONTEXT normalDPIContext = GetThreadDpiAwarenessContext();
     HRESULT hr;
@@ -23,11 +24,15 @@ screenPos getCursorPos() {
     GetGUIThreadInfo(0, &pgui);
     HWND hwnd = pgui.hwndCaret == NULL ? pgui.hwndFocus : pgui.hwndCaret;
     DPI_AWARENESS_CONTEXT tempCOntext = GetWindowDpiAwarenessContext(hwnd);
+    // Right now there is a bug in the WinAPI where it uses the DPI to get the coordinates
+    // To get the correct position, the DPI of this process must match the one of the window with the cursor.
     SetThreadDpiAwarenessContext(tempCOntext);
     
     if(SUCCEEDED(AccessibleObjectFromWindow(hwnd, OBJID_CARET, IID_IAccessible, (void**)&pAccCaret))) {
+        // Use the most reliable strategy to get the coordinates.
         hr = pAccCaret->accLocation(&ret.x, &ret.y, &ret.width, &ret.height, varCaret);
         
+        // If the reliable strategy fails attempt the other one even though it is unlikely that it then will work.
         if(ret.x == 0 && ret.y == 0 && ret.width == 0 && ret.height == 0) {
             if(pgui.rcCaret.left != 0 && pgui.rcCaret.bottom != 0) {
                 POINT point;
@@ -44,11 +49,14 @@ screenPos getCursorPos() {
         pAccCaret->Release();
     }
     
+    // Set the DPI back again.
     SetThreadDpiAwarenessContext(normalDPIContext);
     return ret;
 }
 
 unsigned int getCurrentScale() {
+    // Do not know what CoInitialize does, but it makes position tracking much more reliable.
+    // Do not know if it is needed to get the DPI consistently.
     CoInitialize(NULL);
     GUITHREADINFO pgui;
     pgui.cbSize = sizeof(GUITHREADINFO);
