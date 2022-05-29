@@ -45,10 +45,7 @@ namespace sharp_injector.Patches {
                                 codes[i - 1].operand = null;
                                 // Do static call instet of callvert for new function.
                                 codes[i].opcode = OpCodes.Call;
-                                codes[i].operand = typeof(Helpers.CarretPosition).GetMethod(nameof(Helpers.CarretPosition.getWindowScale));
-                                // Remove the type conversion. (Not necessary but why not)
-                                codes[i + 1].opcode = OpCodes.Nop;
-                                codes[i + 1].operand = null;
+                                codes[i].operand = typeof(Helpers.CarretPosition).GetMethod(nameof(Helpers.CarretPosition.getCurrentScale));
                             }
                             break;
                         case "GetCaretInfo":

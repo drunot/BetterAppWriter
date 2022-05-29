@@ -30,15 +30,5 @@ namespace sharp_injector.Helpers {
         [DllImport("WinAPIHooks.dll")]
         public static extern UInt32 getCurrentScale();
 
-
-        public static double getWindowScale() {
-            double res = getCurrentScale();
-            if (res == 0) {
-                using (Graphics graphics = Graphics.FromHwnd(IntPtr.Zero))
-                    res = (double)graphics.DpiX;
-            }
-            return res;
-        }
-
     }
 }

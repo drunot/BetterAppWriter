@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.2.1
+
+### Bugfixes
+
+- Predictions window position know works better with multiple screens when using different scaling.
+
 ## Version 0.2.0
 
 ### Features

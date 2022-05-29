@@ -8,6 +8,7 @@
 #include<iostream>
 #include<UIAutomationClient.h>
 #include<atlbase.h>
+#include<ShellScalingAPI.h>
 
 screenPos getCursorPos() {
     screenPos ret = { 0, 0, 0, 0 };
@@ -63,5 +64,14 @@ unsigned int getCurrentScale() {
     GetGUIThreadInfo(0, &pgui);
     HWND hwnd = pgui.hwndCaret == NULL ? pgui.hwndFocus : pgui.hwndCaret;
     DPI_AWARENESS_CONTEXT tempCOntext = GetWindowDpiAwarenessContext(hwnd);
-    return GetDpiFromDpiAwarenessContext(tempCOntext);
+    UINT ret = GetDpiFromDpiAwarenessContext(tempCOntext);
+    if (ret == 0) {
+        DPI_AWARENESS_CONTEXT normalDPIContext = GetThreadDpiAwarenessContext();
+        SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+        HMONITOR m = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        UINT dpiY;
+        HRESULT temp2 = GetDpiForMonitor(m, MDT_EFFECTIVE_DPI, &ret, &dpiY);
+        SetThreadDpiAwarenessContext(normalDPIContext);
+    }
+    return ret;
 }
