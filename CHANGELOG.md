@@ -4,7 +4,7 @@
 
 ### Bugfixes
 
-- Predictions window position know works better with multiple screens when using different scaling.
+- Predictions window position now works better with multiple screens when using different scaling.
 
 ## Version 0.2.0
 
