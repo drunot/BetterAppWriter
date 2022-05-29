@@ -65,7 +65,8 @@ unsigned int getCurrentScale() {
     HWND hwnd = pgui.hwndCaret == NULL ? pgui.hwndFocus : pgui.hwndCaret;
     DPI_AWARENESS_CONTEXT tempCOntext = GetWindowDpiAwarenessContext(hwnd);
     UINT ret = GetDpiFromDpiAwarenessContext(tempCOntext);
-    if (ret == 0) {
+    
+    if(ret == 0) {
         DPI_AWARENESS_CONTEXT normalDPIContext = GetThreadDpiAwarenessContext();
         SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
         HMONITOR m = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
@@ -73,5 +74,6 @@ unsigned int getCurrentScale() {
         HRESULT temp2 = GetDpiForMonitor(m, MDT_EFFECTIVE_DPI, &ret, &dpiY);
         SetThreadDpiAwarenessContext(normalDPIContext);
     }
+    
     return ret;
 }
