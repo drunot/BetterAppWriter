@@ -3,7 +3,7 @@
 ## Version 0.3.0
 
 ### Features
-- Now the user can choose in the `Write Settings` menu weather they prefer to have the prediction window below or above the cursor.
+- Now the user can choose in the `Write Settings` menu whether they prefer to have the prediction window below or above the cursor.
 
 ### Bugfixes
 - The prediction window position calculation is completely rewritten to fix problems with multiple screens with different scaling.
