@@ -4,7 +4,7 @@
 
 This is an add-on to [Wizkids AppWriter](https://www.wizkids.dk/downloads/) that adds additional functionality to the application.
 
-It is currently a very early build and does only add very basic functionality.
+It is currently an early build.
 
 What this app currently does add:
 
@@ -37,7 +37,6 @@ These are the currently planned features. This list is not final, and features m
 - Rebinding of exiting shortcuts
 - Additional shortcuts e.g., for increasing/decreasing the reading speed.
 - Option to have the system ignore all inputs that are assigned to a shortcut in AppWriter.
-- Option for the writing prediction bar to prefer being on top of the cursor instead of on the bottom.
 - Translation support for all additional texts added by the addon so they follow the selected application language. (I'll only be able to do Danish and English myself)
 
 ## Building
@@ -55,4 +54,4 @@ Right now, the building process is not very organized:
 
 ## Licence
 
-This product is released under the GPL 3.0 License. Microsoft.Xaml.Behaviors, Lib.Harmony, Newtonsoft.Json, and WarpDLL are under the MIT License.
+This product is released under the GPL 3.0 License. Microsoft.Xaml.Behaviors, Lib.Harmony, Newtonsoft.Json, and WarpDLL are under the MIT License. The program AppWriter that this is an add-on to, has a commercial license and is owned and distributed by Wizkids A/S.
