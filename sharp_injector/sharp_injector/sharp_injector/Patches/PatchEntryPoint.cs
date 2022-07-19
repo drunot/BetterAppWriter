@@ -16,12 +16,14 @@ namespace sharp_injector.Patches {
         static private object toolBarWindow = null;
         static private object predictionWindow = null;
         static private object menuContextWindow = null;
+        static private object menuWriteSettingsContextWindow = null;
         static private object dictionaryWindow = null;
         public static void Patch() {
             // Use debugging for now.
             // Harmony.DEBUG = true;
             // Registor harmony.
             PatchRegister.HarmonyInstance = new Harmony("com.antonvigensmolarz.appwriter.betteraw");
+            ClassPrinter.PrintMembers("AppWriter.AppWriterService,AppWriter.Core");
 
             // Get toolbar window type and and the function to inject into it.
             var mPrefix_Toolbar_Window_Loaded = typeof(PatchEntryPoint).GetMethod(nameof(Prefix_Toolbar_Window_Loaded), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
@@ -52,7 +54,7 @@ namespace sharp_injector.Patches {
                         AppWriterServicePatcher asp = new AppWriterServicePatcher(toolBarWindow);
                         DictionaryPatch tw = new DictionaryPatch(dictionaryWindow);
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
-                        PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow);
+                        PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow);
                         PatchRegister.DoPatching();
                     });
                     thread.Start();
@@ -70,10 +72,12 @@ namespace sharp_injector.Patches {
                 toolBarWindow = __instance;
                 var toolBarWType = __instance.GetType();
                 var _menuWindowType = toolBarWType.GetMember("_menuWindow", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                var _writeWindowType = toolBarWType.GetMember("_writeWindow", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 var _dictionaryWindowType = toolBarWType.GetMember("_dictionaryWindow", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 dictionaryWindow = ((FieldInfo)_dictionaryWindowType[0]).GetValue(__instance);
                 menuContextWindow = ((FieldInfo)_menuWindowType[0]).GetValue(__instance);
-                if (menuContextWindow != null && toolBarWindow != null && dictionaryWindow != null) {
+                menuWriteSettingsContextWindow = ((FieldInfo)_writeWindowType[0]).GetValue(__instance);
+                if (menuContextWindow != null && toolBarWindow != null && dictionaryWindow != null && menuWriteSettingsContextWindow != null) {
                     Terminal.Print("Window contexts found\n");
                 }
 

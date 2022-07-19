@@ -5,10 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace BetterAW
-{
-    public class RelayCommand : ICommand
-    {
+namespace BetterAW {
+    public class RelayCommand : ICommand {
         public delegate void RelayDelegate();
 
         private RelayDelegate _executer = null;
@@ -16,21 +14,18 @@ namespace BetterAW
         public RelayCommand() { }
         public RelayCommand(RelayDelegate executer) { _executer = executer; }
         #region Fields
-        event EventHandler ICommand.CanExecuteChanged
-        {
-        add { CommandManager.RequerySuggested += value; }
-        remove { CommandManager.RequerySuggested -= value; }
+        event EventHandler ICommand.CanExecuteChanged {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public bool CanExecute(object foo)
-        {
-            if(_executer != null)
+        public bool CanExecute(object foo) {
+            if (_executer != null)
                 return true;
             return false;
         }
 
-        public void Execute(object foo )
-        {
+        public void Execute(object foo) {
             _executer();
         }
 

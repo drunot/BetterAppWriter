@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 namespace sharp_injector.Patches {
 
     public class KeyboardShortcutsPatcher : IPatcher {
-        private static readonly string settingsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\BetterAppWriter\default.json";
+        private static readonly string settingsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\BetterAppWriter\keyboard.json";
         // Get the tooltip from the button (IDK why I made this to a function but o'well)
         private static string GetStringFromBtn(object button) {
             return (string)((PropertyInfo)button.GetType().GetMember("ToolTip", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(button, null);

@@ -66,6 +66,7 @@
     <Compile Include="DTO\JSONLanguage.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\CarretPosition.cs" />
+    <Compile Include="Helpers\Settings.cs" />
     <Compile Include="Helpers\Translations.cs" />
     <Compile Include="Patches\AppWriterServicePatcher.cs" />
     <Compile Include="Patches\PredictionsWindowPatcher.cs" />

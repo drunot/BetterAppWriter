@@ -6,12 +6,9 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Windows.Controls;
 
-namespace DictionaryHandler
-{
-    public static class WebBrowserExtensions
-    {
-        enum OLECMDID
-        {
+namespace DictionaryHandler {
+    public static class WebBrowserExtensions {
+        enum OLECMDID {
             OLECMDID_OPEN = 1,
             OLECMDID_NEW = 2,
             OLECMDID_SAVE = 3,
@@ -96,20 +93,18 @@ namespace DictionaryHandler
             OLECMDID_SHOWMESSAGE_BLOCKABLE = 84,
             OLECMDID_SHOWTASKDLG_BLOCKABLE = 85
         };
-        enum OLECMDEXECOPT
-        {
+        enum OLECMDEXECOPT {
             OLECMDEXECOPT_DODEFAULT = 0,
             OLECMDEXECOPT_PROMPTUSER = 1,
             OLECMDEXECOPT_DONTPROMPTUSER = 2,
             OLECMDEXECOPT_SHOWHELP = 3
         };
-        public static void SetZoom(this WebBrowser webBrowser, double Zoom)
-        {
+        public static void SetZoom(this WebBrowser webBrowser, double Zoom) {
             // Get the _axIWebBrowser2
             var wb = (dynamic)webBrowser.GetType().GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(webBrowser);
             // For some reason the webbrower does update its scaling, but without drawing the page bigger.
             // Therefore the zoomLevel should be the scaling (in decimal) squared for correct updates.
-            int zoomLevel = (int)(Zoom* Zoom*100);
+            int zoomLevel = (int)(Zoom * Zoom * 100);
             // Use ExecWB command with OLECMDID_OPTICAL_ZOOM (63) and we do not want user promts OLECMDEXECOPT_DONTPROMPTUSER (2).
             // This is a internal IE function.
             wb.ExecWB((int)OLECMDID.OLECMDID_OPTICAL_ZOOM, (int)OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER, zoomLevel, ref zoomLevel);

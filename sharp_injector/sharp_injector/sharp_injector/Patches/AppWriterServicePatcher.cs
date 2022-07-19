@@ -20,7 +20,6 @@ namespace sharp_injector.Patches {
             PatchRegister.RegisterPatch(this);
             toolbarWindowWindow_ = toolbarWindowWindow;
             appWriterServiceType_ = Type.GetType("AppWriter.AppWriterService,AppWriter.Core");
-            //ClassPrinter.PrintMembers("AppWriter.Xaml.Elements.Translation.Translations,AppWriter.Core");
             appWriterService_ = toolbarWindowWindow_.GetType().GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindowWindow_);
 
         }

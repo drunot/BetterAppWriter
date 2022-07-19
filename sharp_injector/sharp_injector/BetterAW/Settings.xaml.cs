@@ -11,25 +11,21 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace BetterAW
-{
+namespace BetterAW {
     /// <summary>
     /// Interaction logic for Settings.xaml
     /// </summary>
-    public partial class Settings : Window
-    {
+    public partial class Settings : Window {
         public bool IsClosed = true;
 
         static KeyboardShortcuts keyboardShortcuts = null;
-        public Settings()
-        {
+        public Settings() {
             InitializeComponent();
             this.IsVisibleChanged += (s, e) => { IsClosed = !this.IsVisible; };
             this.Closed += (s, e) => { IsClosed = true; };
         }
 
-        private void TerminalBtn_Click(object sender, RoutedEventArgs e)
-        {
+        private void TerminalBtn_Click(object sender, RoutedEventArgs e) {
             Terminal.Toggle();
         }
 
@@ -37,14 +33,11 @@ namespace BetterAW
 
         public static Test_Click TestClick = (s, e) => { };
 
-        private void KeyboardShortBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if(keyboardShortcuts == null || keyboardShortcuts.IsClosed)
-            {
+        private void KeyboardShortBtn_Click(object sender, RoutedEventArgs e) {
+            if (keyboardShortcuts == null || keyboardShortcuts.IsClosed) {
                 keyboardShortcuts = new KeyboardShortcuts();
                 keyboardShortcuts.Show();
-            } else
-            {
+            } else {
                 keyboardShortcuts.Focus();
             }
         }
