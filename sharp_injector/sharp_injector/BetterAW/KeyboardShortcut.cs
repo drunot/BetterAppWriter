@@ -60,7 +60,7 @@ namespace BetterAW {
 
         public static readonly DependencyProperty ShortcutTextProperty = DependencyProperty.Register("ShortcutText", typeof(string), typeof(KeyboardShortcut));
 
-        static string KeybindingToString(HashSet<System.Windows.Forms.Keys> keys) {
+        static string KeybindingToString(SortedSet<System.Windows.Forms.Keys> keys) {
             try {
                 if (keys == null || keys.Count <= 0) {
                     return "";

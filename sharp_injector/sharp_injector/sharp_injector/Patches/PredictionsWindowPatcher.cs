@@ -35,7 +35,6 @@ namespace sharp_injector.Patches {
             int childrenCount = VisualTreeHelper.GetChildrenCount(window);
             for (int i = 0; i < childrenCount; i++) {
                 var child = VisualTreeHelper.GetChild(window, i);
-                Terminal.Print($"childType: {child.GetType().FullName}\n");
                 if (child.GetType() == objectType) {
                     return child;
                 }
@@ -119,9 +118,7 @@ namespace sharp_injector.Patches {
 
         public void Patch() {
             try {
-                //AppWriterXamlElements:TextSeparator
-                //Type.GetType("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements");
-                Debug.ClassPrinter.PrintMembers("AppWriter.Xaml.Elements.ContextMenuButtonLabel,AppWriter.Xaml.Elements");
+                // Get PredictionsWindow type and functions to be overwritten.
                 var UpdateMethodType = Type.GetType("AppWriter.Windows.PredictionsWindow,AppWriter");
                 var mUpdatePosition_Prefix = typeof(PredictionsWindowPatcher).GetMethod(nameof(UpdatePosition_Prefix), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 // <UpdatePosition>b__44_0 could be found smater than manual.

@@ -20,85 +20,120 @@ namespace BetterAW {
         public string ShortcutText;
         public object Icon;
     }
-    public class KeyboardShortcutInfo : BaseShortcutInfo {
+    public class KeyboardShortcutInfo : BaseShortcutInfo, IComparable<KeyboardShortcutInfo> {
         public KeyboardShortcutInfo() { }
         public KeyboardShortcutInfo(string name) {
             Name = name;
             ShortcutText = String.Empty;
-            ShortcutEvent = null;
-            keyBinding = new HashSet<System.Windows.Forms.Keys>();
             Icon = null;
         }
 
-        public ShortcutEvent ShortcutEvent;
-        public HashSet<System.Windows.Forms.Keys> keyBinding;
-
-        /* Make it much easier to compaire the things. */
-        /* Do to how this should work in many plases both the hash creation and the object compairation is limited to only check the name */
-        /* If keyboard shortcut should be compaired be explicit. */
-        public static bool Equals(KeyboardShortcutInfo a, KeyboardShortcutInfo b) {
-            if (a is null || b is null) {
-                return a is null && b is null;
+        public SortedSet<System.Windows.Forms.Keys> keyBinding = new SortedSet<System.Windows.Forms.Keys>();
+        public static bool operator <(KeyboardShortcutInfo lhs, KeyboardShortcutInfo rhs) {
+            if (lhs is null) {
+                return !(rhs is null);
             }
-            return a.Name == b.Name;
+            if (lhs.keyBinding is null) {
+                return !(rhs.keyBinding is null);
+            }
+            var lhsA = lhs.keyBinding.ToArray();
+            var rhsA = rhs.keyBinding.ToArray();
+            for (int i = 0; i < lhsA.Length; i++) {
+                if (lhsA[i] < rhsA[i]) {
+                    return true;
+                } else if (lhsA[i] > rhsA[i]) {
+                    return false;
+                }
+            }
+            return false;
         }
-        public bool Equals(KeyboardShortcutInfo a) {
-            return Equals(this, a);
+        public static bool operator >(KeyboardShortcutInfo lhs, KeyboardShortcutInfo rhs) {
+            if (lhs is null) {
+                return false;
+            }
+            if (rhs is null) {
+                return lhs is null;
+            }
+            if (lhs.keyBinding is null) {
+                return false;
+            }
+            var lhsA = lhs.keyBinding.ToArray();
+            var rhsA = rhs.keyBinding.ToArray();
+            for (int i = 0; i < lhsA.Length; i++) {
+                if (lhsA[i] > rhsA[i]) {
+                    return true;
+                } else if (lhsA[i] < rhsA[i]) {
+                    return false;
+                }
+            }
+            return false;
+        }
+        public static bool operator ==(KeyboardShortcutInfo lhs, KeyboardShortcutInfo rhs) {
+            if (lhs is null) {
+                return rhs is null;
+            }
+            if (rhs is null) {
+                return !(lhs is null);
+            }
+            if (lhs.keyBinding is null) {
+                return rhs.keyBinding is null;
+            }
+            return lhs.keyBinding.SetEquals(rhs.keyBinding);
         }
 
-        public static bool operator ==(KeyboardShortcutInfo a, KeyboardShortcutInfo b) {
-            return Equals(a, b);
+        public static bool operator !=(KeyboardShortcutInfo lhs, KeyboardShortcutInfo rhs) {
+            if (lhs is null) {
+                return !(rhs is null);
+            }
+            if (lhs.keyBinding is null) {
+                return !(rhs.keyBinding is null);
+            }
+            return !lhs.keyBinding.SetEquals(rhs.keyBinding);
         }
 
-        public static bool operator !=(KeyboardShortcutInfo a, KeyboardShortcutInfo b) {
-            return !Equals(a, b);
-        }
-        public static bool Equals(KeyboardShortcutInfo a, HashSet<System.Windows.Forms.Keys> b) {
-            return a.keyBinding.IsSubsetOf(b) && a.keyBinding.Count == b.Count;
-        }
-        public bool Equals(HashSet<System.Windows.Forms.Keys> a) {
-            return Equals(this, a);
-        }
+        public override bool Equals(object obj) {
 
-        public static bool operator ==(KeyboardShortcutInfo a, HashSet<System.Windows.Forms.Keys> b) {
-            return Equals(a, b);
-        }
+            // If obj is KeyboardInternalShortcutInfo then use normal equal
+            if (obj is KeyboardShortcutInfo) {
+                return (obj as KeyboardShortcutInfo) == this;
+            }
 
-
-        public static bool operator !=(KeyboardShortcutInfo a, HashSet<System.Windows.Forms.Keys> b) {
-            return !Equals(a, b);
-        }
-
-        public static bool Equals(KeyboardShortcutInfo a, string b) {
-            return a.Name == b;
-        }
-        public bool Equals(string a) {
-            return Equals(this, a);
-        }
-
-        public static bool operator ==(KeyboardShortcutInfo a, string b) {
-            return Equals(a, b);
-        }
-
-        public static bool operator !=(KeyboardShortcutInfo a, string b) {
-            return !Equals(a, b);
-        }
-        public override bool Equals(object a) {
-            return a != null && a.GetType() == typeof(KeyboardShortcutInfo) && Equals((KeyboardShortcutInfo)a);
+            // Else only return true if both is null
+            return (obj == null && this == null);
         }
         public override int GetHashCode() {
-            return Name.GetHashCode();
+            return keyBinding.GetHashCode();
+        }
+        public int CompareTo(KeyboardShortcutInfo y) {
+            if (this == y) {
+                return 0;
+            }
+            if (this < y) {
+                return -1;
+            }
+            return 1;
         }
     }
     public class LanguageShortcutInfo : BaseShortcutInfo {
         public bool Selected;
     }
     public partial class KeyboardShortcuts : Window {
-        public delegate void RekordingKey(HashSet<System.Windows.Forms.Keys> newShortcut);
-        public delegate void StartRekordingKeys(RekordingKey pressedKeys);
-        public delegate KeyboardShortcutInfo RegisterShortcut(KeyboardShortcutInfo newShortcut);
-        public static StartRekordingKeys RekordingKeysDelegate = (pressedKeys) => { };
-        public static RegisterShortcut RegisterShortcutDelegate = (e) => e;
+        public static event Events.ShortcutAddEventHandler ShortcutAdd;
+        public static event Events.ShortcutStartAddEventHandler ShortcutStartAdd;
+        public static event Events.ShortcutRemoveEventHandler ShortcutRemove;
+
+        public static void ShortcutRemoveInvokeExternal(object sender, Events.ShortcutRemoveEventArgs e) {
+            if (ShortcutRemove != null) {
+                ShortcutRemove(sender, e);
+            }
+        }
+        public static void ShortcutAddInvokeExternal(object sender, Events.ShortcutAddEventArgs e) {
+            if (ShortcutAdd != null) {
+                ShortcutAdd(sender, e);
+            }
+        }
+
+        public delegate BaseShortcutInfo RegisterShortcut(BaseShortcutInfo newShortcut);
         public static List<UIElement> stackElements = null;
         public static Dictionary<string, List<BaseShortcutInfo>> Shortcuts { get; private set; } = new Dictionary<string, List<BaseShortcutInfo>>();
         // Add shortcut to the window.
@@ -117,36 +152,65 @@ namespace BetterAW {
         // Draw all the shortcuts to the window.
         public void LoadShortcuts() {
             try {
+                ShortcutRemove += (s, e) => {
+                    Dispatcher.Invoke(new Action(() => {
+                        try {
+                            foreach (var child in this.ContentPanel.Children) {
+                                if (child.GetType() != typeof(KeyboardShortcut)) {
+                                    continue;
+                                }
+                                if ((child as KeyboardShortcut).ShortcutInfo.Name == e.ShortcutName) {
+                                    var shortcut = (child as KeyboardShortcut).ShortcutInfo;
+                                    shortcut.keyBinding = null;
+                                    (child as KeyboardShortcut).ShortcutInfo = shortcut;
+
+                                    break;
+                                }
+                            }
+                        } catch (Exception ex) {
+                            Terminal.Print(string.Format("{0}\n", ex.ToString()));
+                        }
+                    }));
+                };
+                ShortcutAdd += (s, e) => {
+                    Dispatcher.Invoke(new Action(() => {
+                        try {
+                            foreach (var child in this.ContentPanel.Children) {
+                                if (child.GetType() != typeof(KeyboardShortcut)) {
+                                    continue;
+                                }
+                                if ((child as KeyboardShortcut).ShortcutInfo.Name == e.ShortcutName) {
+
+                                    var shortcut = (child as KeyboardShortcut).ShortcutInfo;
+                                    shortcut.keyBinding = e.Shortcut;
+                                    (child as KeyboardShortcut).ShortcutInfo = shortcut;
+
+                                    break;
+                                }
+                            }
+                        } catch (Exception ex) {
+                            Terminal.Print(string.Format("{0}\n", ex.ToString()));
+                        }
+                    }));
+                };
                 foreach (KeyValuePair<string, List<BaseShortcutInfo>> entry in Shortcuts) {
                     KeyboardShortcutLabel label = new KeyboardShortcutLabel();
                     label.Content = entry.Key;
                     this.ContentPanel.Children.Add(label);
                     KeyboardShortcut.AddEvent = (self) => {
-                        RekordingKeysDelegate((newShortcut) => self.Dispatcher.Invoke(new Action(() => {
-                            try {
-                                var shortcut = self.ShortcutInfo;
-                                System.Windows.Forms.Keys[] keys = new System.Windows.Forms.Keys[newShortcut.Count];
-                                newShortcut.CopyTo(keys, 0);
-                                shortcut.keyBinding = new HashSet<System.Windows.Forms.Keys>(keys);
-                                self.ShortcutInfo = shortcut;
-                                RegisterShortcutDelegate(shortcut);
-                            } catch (Exception ex) {
-                                Terminal.Print(string.Format("{0}\n", ex.ToString()));
-                            }
-                        })));
+                        // Unregister all other events for ShortcutAdd
+                        if (ShortcutStartAdd != null) {
+                            ShortcutStartAdd(self, new Events.ShortcutStartAddEventArgs(self.ShortcutInfo.Name));
+                        }
                     };
                     KeyboardShortcut.RemoveEvent = (self) => {
-                        self.Dispatcher.Invoke(new Action(() => {
-                            try {
-                                var shortcut = self.ShortcutInfo;
-                                shortcut.keyBinding = null;
-                                self.ShortcutInfo = shortcut;
-                                RegisterShortcutDelegate(shortcut);
-
-                            } catch (Exception ex) {
-                                Terminal.Print(string.Format("{0}\n", ex.ToString()));
+                        try {
+                            if (ShortcutRemove != null) {
+                                ShortcutRemove(self, new Events.ShortcutRemoveEventArgs(self.ShortcutInfo.Name));
                             }
-                        }));
+                        } catch (Exception ex) {
+                            Terminal.Print(string.Format("{0}\n", ex.ToString()));
+                        }
                     };
                     foreach (BaseShortcutInfo shortcutInfo in entry.Value) {
                         if (shortcutInfo.GetType() == typeof(KeyboardShortcutInfo)) {

@@ -63,6 +63,9 @@
     <Compile Include="BaseWindowControl.cs" />
     <Compile Include="BorderClipConverter.cs" />
     <Compile Include="DragBarControl.cs" />
+    <Compile Include="Events\ShortcutAddEventArgs.cs" />
+    <Compile Include="Events\ShortcutRemoveEventArgs.cs" />
+    <Compile Include="Events\ShortcutStartAddEventArgs.cs" />
     <Compile Include="InterceptKeys.cs" />
     <Compile Include="KeyboardShortcutLabel.cs" />
     <Compile Include="KeyboardShortcuts.xaml.cs">

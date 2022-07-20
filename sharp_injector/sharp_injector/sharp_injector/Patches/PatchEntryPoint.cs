@@ -42,7 +42,8 @@ namespace sharp_injector.Patches {
                     // If the toolbarType is found inject the function.
                     var predictionWindow_Loaded = predictionWType.GetMethod("Window_Loaded", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                     PatchRegister.HarmonyInstance.Patch(predictionWindow_Loaded, new HarmonyMethod(mPrefix_Prediction_Window_Loaded));
-
+                    
+                    
                     Thread thread = new Thread(() => {
                         Terminal.Print("Assemblies loaded:\n");
                         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {

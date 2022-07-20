@@ -64,10 +64,12 @@
     <Compile Include="Debug\FilePrinter.cs" />
     <Compile Include="DTO\JSONKeybinding.cs" />
     <Compile Include="DTO\JSONLanguage.cs" />
+    <Compile Include="Events\KeyUpHookEventArgs.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\CarretPosition.cs" />
     <Compile Include="Helpers\Settings.cs" />
     <Compile Include="Helpers\Translations.cs" />
+    <Compile Include="Helpers\WindowsKeyboardHooks.cs" />
     <Compile Include="Patches\AppWriterServicePatcher.cs" />
     <Compile Include="Patches\PredictionsWindowPatcher.cs" />
     <Compile Include="Patches\IPatcher.cs" />
