@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.4.0
+
+### Features
+- The prediction window settings under `Write Settings` is revamped.
+
 ## Version 0.3.0
 
 ### Features

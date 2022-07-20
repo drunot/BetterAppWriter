@@ -35,7 +35,6 @@ namespace sharp_injector.Patches {
                         var MenuItemContent = ContextMenuItemType.GetMember("MenuItemContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                         ((PropertyInfo)MenuItemContent[0]).SetValue(ContextMenuItemInstance, title, null);
                         var MenuItemIcon = ContextMenuItemType.GetMember("MenuItemIcon", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-                        Image image1 = new Image();
                         Viewbox viewbox = new Viewbox();
                         StreamResourceInfo sri = Application.GetResourceStream(new Uri(image, UriKind.Relative));
                         if (sri != null) {

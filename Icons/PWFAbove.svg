@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="PWFAbove" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 25 21" style="enable-background:new 0 0 25 21;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#C9C9C9;}
+	.st1{fill:#3592CF;}
+	.st2{fill:#FFFFFF;}
+</style>
+<g>
+	<path class="st0" d="M24,13h-4c-0.6,0-1-0.4-1-1V9c0-0.6,0.4-1,1-1h4c0.6,0,1,0.4,1,1v3C25,12.6,24.6,13,24,13z"/>
+	<path class="st0" d="M24,5H7C6.4,5,6,4.6,6,4V1c0-0.6,0.4-1,1-1h17c0.6,0,1,0.4,1,1v3C25,4.6,24.6,5,24,5z"/>
+	<path class="st0" d="M3,5H1C0.4,5,0,4.6,0,4V1c0-0.6,0.4-1,1-1h2c0.6,0,1,0.4,1,1v3C4,4.6,3.6,5,3,5z"/>
+	<path class="st0" d="M16,13H1c-0.6,0-1-0.4-1-1V9c0-0.6,0.4-1,1-1h15c0.6,0,1,0.4,1,1v3C17,12.6,16.6,13,16,13z"/>
+	<path class="st1" d="M17,13H7c-0.6,0-1-0.4-1-1V1c0-0.6,0.4-1,1-1h10c0.6,0,1,0.4,1,1v11C18,12.6,17.6,13,17,13z"/>
+	<path class="st0" d="M9,21H1c-0.6,0-1-0.4-1-1v-3c0-0.6,0.4-1,1-1h8c0.6,0,1,0.4,1,1v3C10,20.6,9.5,21,9,21z"/>
+	<polygon class="st1" points="12,15 10,13 14,13 	"/>
+	<rect x="11" y="2" class="st2" width="2" height="6"/>
+	<rect x="11" y="9" class="st2" width="2" height="2"/>
+	<rect x="11" y="16" class="st1" width="1" height="5"/>
+</g>
+</svg>

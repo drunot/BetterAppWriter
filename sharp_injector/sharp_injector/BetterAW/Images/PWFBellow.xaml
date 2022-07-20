@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This file is NOT compatible with Silverlight-->
+<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Stretch="Uniform">
+  <Canvas Name="PWFBellow" Canvas.Left="0" Canvas.Top="0" Width="25" Height="21">
+    <Canvas.RenderTransform>
+      <TranslateTransform X="0" Y="0"/>
+    </Canvas.RenderTransform>
+    <Canvas.Resources/>
+    <!--Unknown tag: sodipodi:namedview-->
+    <Canvas Name="g374">
+            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path354" Fill="#c9c9c9">
+        <Path.Data>
+          <PathGeometry Figures="M1 8h16c0.6 0 1 0.4 1 1v3c0 0.6-0.4 1-1 1H1c-0.6 0-1-0.4-1-1V9C0 8.4 0.4 8 1 8z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path356" Fill="#c9c9c9">
+        <Path.Data>
+          <PathGeometry Figures="M1 16h3c0.6 0 1 0.4 1 1v3c0 0.6-0.4 1-1 1H1c-0.6 0-1-0.4-1-1v-3C0 16.4 0.4 16 1 16z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path358" Fill="#c9c9c9">
+        <Path.Data>
+          <PathGeometry Figures="M8 16h16c0.6 0 1 0.4 1 1v3c0 0.6-0.4 1-1 1H8c-0.6 0-1-0.4-1-1v-3C7 16.4 7.4 16 8 16z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path360" Fill="#c9c9c9">
+        <Path.Data>
+          <PathGeometry Figures="M21 8h3c0.6 0 1 0.4 1 1v3c0 0.6-0.4 1-1 1h-3c-0.6 0-1-0.4-1-1V9C20 8.4 20.4 8 21 8z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path362" Fill="#2094e0">
+        <Path.Data>
+          <PathGeometry Figures="M8 8h10c0.6 0 1 0.4 1 1v11c0 0.6-0.4 1-1 1H8c-0.6 0-1-0.4-1-1V9C7 8.4 7.4 8 8 8z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+      <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path364" Fill="#c9c9c9">
+        <Path.Data>
+          <PathGeometry Figures="M1 0h9c0.6 0 1 0.4 1 1v3c0 0.6-0.4 1-1 1H1C0.4 5 0 4.6 0 4V1C0 0.4 0.4 0 1 0z" FillRule="NonZero"/>
+        </Path.Data>
+      </Path>
+            <Polygon xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Points="13,6 15,8 11,8  " Name="polygon366" FillRule="NonZero" Fill="#2094e0"/>
+      <Rectangle xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="12" Canvas.Top="10" Width="2" Height="6" Name="rect368" Fill="#ffffff"/>
+      <Rectangle xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="12" Canvas.Top="17" Width="2" Height="2" Name="rect370" Fill="#ffffff"/>
+            <Rectangle xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="12" Width="1" Height="5" Name="rect372" Fill="#2094e0"/>
+    </Canvas>
+  </Canvas>
+</Viewbox>
