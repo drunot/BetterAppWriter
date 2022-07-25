@@ -57,6 +57,8 @@ namespace sharp_injector.Patches {
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
                         PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow);
                         PatchRegister.DoPatching();
+                        while (predictionWindow is null) ;
+                        PatchRegister.DoPredictionPatching(predictionWindow);
                     });
                     thread.Start();
                 } else {

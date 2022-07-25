@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using BetterAW;
 using System.Threading;
 using sharp_injector.Events;
+using System.IO;
 
 namespace sharp_injector.Helpers {
     public delegate bool KeyboardEventDelegate(SortedSet<Keys> combination);
@@ -139,7 +140,9 @@ namespace sharp_injector.Helpers {
         }
     }
     public static class WindowsKeyboardHooks {
-        public  static event KeyUpHookEventHandler KeyUpHook;
+        public static event KeyUpHookEventHandler KeyUpHook;
+        public static event KeyDownHookEventHandler KeyDownHook;
+        public static event AllKeyUpHookEventHandler AllKeyUpHook;
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
         private const int WM_KEYUP = 0x0101;
@@ -159,6 +162,8 @@ namespace sharp_injector.Helpers {
             UnhookWindowsHookEx(_hookID);
         }
 
+        public static bool DisableShortcuts { get; set; } = false;
+
         public static void AddKeyboardEvent(WindowsKeyboardEvent keyboardEvent) {
 
             // Reset the event if it exists.
@@ -171,10 +176,10 @@ namespace sharp_injector.Helpers {
             windowsKeyboardEvents.Remove(keyboardEvent);
         }
 
-        public static void RemoveKeyboardEvent(SortedSet<Keys> keyboardEvent) {
+        public static bool RemoveKeyboardEvent(SortedSet<Keys> keyboardEvent) {
 
             // Reset the event if it exists.
-            windowsKeyboardEvents.Remove(keyboardEvent);
+            return windowsKeyboardEvents.Remove(keyboardEvent);
         }
 
         public static void ApplicationHook() {
@@ -182,23 +187,37 @@ namespace sharp_injector.Helpers {
             eventThread.Start();
         }
 
-        private static IntPtr SetHook(LowLevelKeyboardProc proc) {
-            using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule) {
+        private static IntPtr SetHook(LowLevelKeyboardProc proc, uint dwThreadID = 0) {
+            //using (Process curProcess = Process.GetCurrentProcess())
+            //using (ProcessModule curModule = curProcess.MainModule) {
                 return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
-                    GetModuleHandle(curModule.ModuleName), 0);
-            }
+                    LoadLibrary("User32"), dwThreadID);
+            //}
         }
 
-        private delegate IntPtr LowLevelKeyboardProc(
-            int nCode, IntPtr wParam, IntPtr lParam);
+        //private delegate IntPtr LowLevelKeyboardProc(
+        //    int nCode, IntPtr wParam, IntPtr lParam);
 
-        private static IntPtr HookCallback( int nCode, IntPtr wParam, IntPtr lParam) {
+        public delegate int LowLevelKeyboardProc(
+          int code,
+          int wParam,
+          ref KeyboardHookStruct lParam);
+
+        public struct KeyboardHookStruct {
+            public int vkCode;
+            public int scanCode;
+            public int flags;
+            public int time;
+            public int dwExtraInfo;
+        }
+
+
+        private static int HookCallback( int nCode, int wParam, ref KeyboardHookStruct lParam) {
             if (nCode >= 0) {
                 switch ((int)wParam) {
                     case WM_SYSKEYDOWN:
                     case WM_KEYDOWN: {
-                            int vkCode = Marshal.ReadInt32(lParam);
+                            int vkCode = lParam.vkCode;
                             // Ignore Right and left identifiers.
                             switch ((Keys)vkCode) {
                                 case Keys.LControlKey:
@@ -217,28 +236,39 @@ namespace sharp_injector.Helpers {
                             // Cleanup keyboard presses. If they where lifted since last time but the event was canceled before getting here
                             // the key will now be registored as lifted.
                             pressedKeys = new SortedSet<Keys>(pressedKeys.Where(x => (GetAsyncKeyState((int)x) & KEY_DOWN_MASK) != 0));
-                            
                             // Since this hook fires before GetAsyncKeyState gets the event manually add this key.
                             pressedKeys.Add((Keys)vkCode);
+                            if (!(KeyDownHook is null)) {
+
+                                var e = new KeyDownHookEventArgs((Keys)vkCode, pressedKeys);
+                                KeyDownHook(null, e);
+                                if (e.Handled) {
+                                    return 1;
+                                }
+                            }
 
                             // Check if the keyboard press was different from the last time.
                             if (!pressedKeys.SetEquals(lastPressedKeys)) {
-                                // Print pressed keys for now.
-                                Terminal.Print($"Current keys down:\n");
-                                foreach (Keys key in pressedKeys) {
-                                    Terminal.Print($"{key}\n");
+                                // If shurtcuts is not disabled.
+                                if (!DisableShortcuts) {
+                                    // If an event is found run the handler.
+                                    // (TryGetValue(pressedKeys, out var keyboardEvent) for some reason crashes the app.)
+                                    var result = windowsKeyboardEvents.Where(x => x.KeyboardShortcut.SetEquals(pressedKeys));
+                                    if (result.Any()) {
+                                        if (result.First().KeyboardEvent(pressedKeys)) {
+                                            lastPressedKeys = pressedKeys;
+                                            return 1;
+                                        }
+                                    }
                                 }
-                                // If an event is fired run the handler.
-                                if (windowsKeyboardEvents.TryGetValue(pressedKeys, out var keyboardEvent)) {
-                                    keyboardEvent.KeyboardEvent(pressedKeys);
-                                }
+                                
                             }
                             lastPressedKeys = pressedKeys;
                         }
                         break;
                     case WM_SYSKEYUP:
                     case WM_KEYUP: {
-                            int vkCode = Marshal.ReadInt32(lParam);
+                            int vkCode = lParam.vkCode;
                             // Ignore Right and left identifiers.
                             switch ((Keys)vkCode) {
                                 case Keys.LControlKey:
@@ -254,37 +284,41 @@ namespace sharp_injector.Helpers {
                                     vkCode = (int)Keys.ShiftKey;
                                     break;
                             }
+
+                            // Update PressedKeys.
                             pressedKeys = new SortedSet<Keys>(pressedKeys.Where(x => (GetAsyncKeyState((int)x) & KEY_DOWN_MASK) != 0));
                             pressedKeys.Remove((Keys)vkCode);
-                            Terminal.Print($"Current keys up:\n");
-                            foreach (Keys key in lastPressedKeys) {
-                                Terminal.Print($"{key}\n");
-                            }
-                            KeyUpHookEventArgs e = new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys);
+
+                            // If key up event is not null, invoke it.
                             if(KeyUpHook != null) {
-                                KeyUpHook(null, e);
+                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys));
+                            }
+                            if(pressedKeys.Count <= 0) {
+                                if(!(AllKeyUpHook is null)) {
+                                    AllKeyUpHook(null, new AllKeyUpHookEventArgs((Keys)vkCode));
+                                }
                             }
                             lastPressedKeys = pressedKeys;
                         }
+                        break;
+                    default:
                         break;
                     
                 }
 
             }
-            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+            return CallNextHookEx(_hookID, nCode, wParam, ref lParam);
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook,
-            LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr SetWindowsHookEx(int hookType, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode,
-            IntPtr wParam, IntPtr lParam);
+        [DllImport("user32.dll")]
+        static extern int CallNextHookEx(IntPtr hhk, int nCode, int wParam, ref KeyboardHookStruct lParam);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
@@ -294,6 +328,10 @@ namespace sharp_injector.Helpers {
 
         [DllImport("user32.dll")]
         public static extern ushort GetAsyncKeyState(int lpKeyState);
+
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr LoadLibrary(string lpFileName);
     }
 
     

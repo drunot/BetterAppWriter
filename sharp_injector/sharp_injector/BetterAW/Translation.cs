@@ -12,10 +12,22 @@ namespace BetterAW {
         public static string KeyboardShortcutsTooltip = "Keyboard shortcuts";
         public static string TerminalButtonTooltip = "Open/Close Terminal (For developers)";
         public static string ShortcutToggleLanguages = "Toggle selected languages.";
-        public static string SeparatorPredictionWindow = "Prediction Window";
+        public static string ShortcutToggleLanguagesShortcut = "Toggle Langauges Shortcut";
+        public static string Toolbar = "Toolbar";
+        public static string ShortcutShortcuts = "shortcuts";
+        public static string ShortcutPredictionNavigateDown = "Navigate down";
+        public static string ShortcutPredictionNavigateUp = "Navigate up";
+        public static string ShortcutPredictionNavigateLeft = "Navigate left";
+        public static string ShortcutPredictionNavigateRight = "Navigate right";
+        public static string ShortcutPredictionHideWindow = "Hide window";
+        public static string ShortcutPredictionInsertSelected = "Insert selected";
+        public static string ShortcutPredictionInsertNumber = "Insert prediction number {0}";
+        public static string ShortcutPredictionCancelInsertion = "Cancel prediction insertion";
+        public static string PredictionWindow = "Prediction Window";
         public static string PredictionWindowPreferBelowCursor = "Prefer below cursor";
         public static string PredictionWindowForceBelowCursor = "Force below cursor";
         public static string PredictionWindowPreferAboveCursor = "Prefer above cursor";
         public static string PredictionWindowForceAboveCursor = "Force above cursor";
+        
     }
 }

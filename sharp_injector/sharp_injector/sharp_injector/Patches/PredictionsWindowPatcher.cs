@@ -30,23 +30,6 @@ namespace sharp_injector.Patches {
             PatchRegister.RegisterPatch(this);
         }
 
-        public DependencyObject getObjectFromWindow(DependencyObject window, Type objectType) {
-
-            int childrenCount = VisualTreeHelper.GetChildrenCount(window);
-            for (int i = 0; i < childrenCount; i++) {
-                var child = VisualTreeHelper.GetChild(window, i);
-                if (child.GetType() == objectType) {
-                    return child;
-                }
-            }
-            for (int i = 0; i < childrenCount; i++) {
-                var child = VisualTreeHelper.GetChild(window, i);
-                // This recursion could fill up the call stack... But who cares.
-                return getObjectFromWindow(child, objectType);
-            }
-            return null;
-        }
-
         UIElement CreateStringSeparator(string separatorMsg) {
             var sparatorType = Type.GetType("AppWriter.Xaml.Elements.TextSeparator,AppWriter.Xaml.Elements");
             var toReturn = sparatorType.GetConstructors()[0].Invoke(null);
@@ -133,7 +116,7 @@ namespace sharp_injector.Patches {
 
                 ((Window)_writeWindow).Dispatcher.Invoke(new Action(() => {
                     try {
-                        sp = (StackPanel)getObjectFromWindow((DependencyObject)_writeWindow, typeof(StackPanel));
+                        sp = (StackPanel)Helpers.TreeSearcher.getObjectFromWindow((DependencyObject)_writeWindow, (obj) => obj.GetType() == typeof(StackPanel));
                         if (sp != null) {
                             ((Window)_writeWindow).Dispatcher.Invoke(new Action(() => {
                                 var sparatorType = Type.GetType("AppWriter.Xaml.Elements.TextSeparator,AppWriter.Xaml.Elements");
@@ -142,7 +125,7 @@ namespace sharp_injector.Patches {
                                         continue;
                                     }
                                     if (Helpers.Translations.GetString("Read_while_writing") == (string)sparatorType.GetProperty("TextSeparatorContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(sp.Children[i])) {
-                                        sp.Children.Insert(i, CreateStringSeparator(Translation.SeparatorPredictionWindow));
+                                        sp.Children.Insert(i, CreateStringSeparator(Translation.PredictionWindow));
                                         UniformGrid ug = new UniformGrid();
                                         ug.Margin = new Thickness(20, 0, 20, 5);
                                         ug.Columns = 4;
@@ -243,7 +226,13 @@ namespace sharp_injector.Patches {
                 var predictionWindowType = __instance.GetType();
                 var Configuration = Type.GetType("AppWriter.ConfigurationManager,AppWriter").GetProperty("Configuration", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(null);
                 var ConfigurationType = Configuration.GetType();
-
+                
+                // Reset selected prediction since new predictions will be avalible on updated position.
+                predictionWindowType.GetField("_selectedPrediction", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(__instance, null);
+                //_service.NavigatingPredictions
+                var _service = predictionWindowType.GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance);
+                var _serviceType = _service.GetType();
+                _serviceType.GetField("NavigatingPredictions", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(_service, false);
                 // Update layout for now, might be able to be removed.
                 ((Window)__instance).UpdateLayout();
 
@@ -255,17 +244,20 @@ namespace sharp_injector.Patches {
                 // Set defualt screen if none is found.
                 Screen screen = lastScreen;
                 var devMode = Helpers.CarretPosition.GetDevMode(screen);
-                double scale = (double)screen.Bounds.Width / (double)devMode.dmPelsWidth;
-
+                // Scale found the old way. THis is untested though.
+                double scale = 96.0 / (double)Helpers.CarretPosition.getCurrentScale();
+                Terminal.Print($"Scale: {scale}\n");
                 // Find correct screen.
                 foreach (Screen allScreen in Screen.AllScreens) {
                     devMode = Helpers.CarretPosition.GetDevMode(allScreen);
                     if (caretInfo.X >= (double)devMode.dmPositionX && caretInfo.X <= (double)(devMode.dmPositionX + devMode.dmPelsWidth) && caretInfo.Y >= (double)devMode.dmPositionY && caretInfo.Y <= (double)(devMode.dmPositionY + devMode.dmPelsHeight)) {
                         screen = allScreen;
-                        scale = (double)screen.Bounds.Width / (double)devMode.dmPelsWidth;
                         break;
                     }
                 }
+                var bounds = new Rectangle(devMode.dmPositionX, devMode.dmPositionY, (int)Math.Round(devMode.dmPelsWidth * scale), (int)Math.Round(devMode.dmPelsHeight * scale));
+                Terminal.Print($"Bounds: {screen.Bounds}\n");
+                Terminal.Print($"devMode Bounds: {bounds}\n");
 
                 // Get ShowPredictionsAtCaret from ConfigurationManager.
                 bool ShowPredictionsAtCaret = (bool)ConfigurationType.GetProperty("ShowPredictionsAtCaret", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(Configuration);
@@ -289,23 +281,23 @@ namespace sharp_injector.Patches {
                     ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                     ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                 } else {
-                    // If X is bellow zero use right hand of screen to find position else use left
-                    if (caretInfo.X < 0) {
+                    // If scrren x is less then zero then screen will be to the left of main dispaly and Right bound should be used.
+                    if (bounds.X < 0) {
                         var ScreenPosRight = devMode.dmPositionX + devMode.dmPelsWidth;
                         var relativeCaretPos = (caretInfo.X - ScreenPosRight) * scale;
-                        x1 = relativeCaretPos + screen.Bounds.Right;
+                        x1 = relativeCaretPos + bounds.Right;
                     } else {
                         var relativeCaretPos = (caretInfo.X - devMode.dmPositionX) * scale;
-                        x1 = relativeCaretPos + screen.Bounds.Left;
+                        x1 = relativeCaretPos + bounds.Left;
                     }
-                    // If Y is bellow zero use bottom of screen to find position else use top
-                    if (caretInfo.Y < 0) {
+                    // If scrren y is less then zero then screen will be to the top of main dispaly and Bottom bound should be used.
+                    if (bounds.Y < 0) {
                         var ScreenPosBottom = devMode.dmPositionY + devMode.dmPelsHeight;
                         var relativeCaretPos = (caretInfo.Y - ScreenPosBottom) * scale;
-                        y1 = relativeCaretPos + screen.Bounds.Bottom;
+                        y1 = relativeCaretPos + bounds.Bottom;
                     } else {
                         var relativeCaretPos = (caretInfo.Y - devMode.dmPositionY) * scale;
-                        y1 = relativeCaretPos + screen.Bounds.Top;
+                        y1 = relativeCaretPos + bounds.Top;
                     }
                     int arrow_height;
                     // Check how the height is off due to arrow visability.
@@ -321,8 +313,8 @@ namespace sharp_injector.Patches {
 
                     // Check if it should be placed bellow, and then place it bellow.
                     if (_prediction_position_setting == predictionWindowPosition.force_bellow
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (screen.Bounds.Y + screen.Bounds.Height)))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - (((Window)__instance).Height + arrow_height) < screen.Bounds.Y))) {
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height)))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - (((Window)__instance).Height + arrow_height) < bounds.Y))) {
                         // Assume that predictionWindowType should be placed bellow the cursor for now.
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
@@ -334,33 +326,35 @@ namespace sharp_injector.Patches {
 
                     // Check if it should be placed above, and then place it above.
                     if (_prediction_position_setting == predictionWindowPosition.force_above
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (screen.Bounds.Y + screen.Bounds.Height))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height + arrow_height) < screen.Bounds.Y))) {
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height + arrow_height) < bounds.Y))) {
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
                         y1 -= (((Window)__instance).Height + arrow_height);
                     }
                     double leftMargin;
-                    if ((x1) < screen.Bounds.Left) {
+                    Terminal.Print($"x1: {x1}\n");
+                    Terminal.Print($"caretInfo.X: {caretInfo.X}\n");
+                    if ((x1) < bounds.Left) {
 
                         // If window is out of bounds on the left side set margin and redraw arrows.
-                        leftMargin = (((Window)__instance).Width / 2.0) - (screen.Bounds.Left - x1);
+                        leftMargin = (((Window)__instance).Width / 2.0) - (bounds.Left - x1);
                         leftMargin = leftMargin < 0 ? 0 : leftMargin;
                         var arrow_offset = (leftMargin / (((Window)__instance).Width / 2.0)) * -20.0;
                         string arrow_offset_str = (arrow_offset).ToString().Replace(",", ".");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,0 L 20,20 L {arrow_offset_str},20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,20 L {arrow_offset_str},0 L 20,0 Z");
-                        x1 = screen.Bounds.Left;
-                    } else if ((x1 + ((Window)__instance).Width) > screen.Bounds.Right) {
+                        x1 = bounds.Left;
+                    } else if ((x1 + ((Window)__instance).Width) > bounds.Right) {
 
                         // If window is out of bounds on the right side set margin and redraw arrows.
-                        leftMargin = (((Window)__instance).Width * 1.5) - (screen.Bounds.Right - x1);
+                        leftMargin = (((Window)__instance).Width * 1.5) - (bounds.Right - x1);
                         leftMargin = leftMargin > ((Window)__instance).Width ? ((Window)__instance).Width : leftMargin;
                         var arrow_offset = (1.0 - (leftMargin - (((Window)__instance).Width / 2.0)) / (((Window)__instance).Width / 2.0)) * 20.0;
                         string arrow_offset_str = (arrow_offset).ToString().Replace(",", ".");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,0 L {arrow_offset_str},20 L -20,20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,20 L -20,0 L {arrow_offset_str},0 Z");
-                        x1 = screen.Bounds.Right - ((Window)__instance).Width;
+                        x1 = bounds.Right - ((Window)__instance).Width;
                     } else {
 
                         // If window is in the inside window bounds set margin and arrows to default.
@@ -368,6 +362,7 @@ namespace sharp_injector.Patches {
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,0 L 20,20 L -20,20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,20 L -20,0 L 20,0 Z");
                     }
+                    Terminal.Print($"x1: {x1}\n");
 
                     // Set margin to calculated value.
                     ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Margin = new Thickness(leftMargin, 0.0, 0.0, 0.0);

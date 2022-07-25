@@ -1,8 +1,8 @@
-﻿using System;
+﻿using BetterAW.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,7 +25,7 @@ namespace BetterAW {
             get => _shortcutInfo;
             set {
                 _shortcutInfo = value;
-                SetValue(ShortcutKeybindTextProperty, KeybindingToString(_shortcutInfo.keyBinding));
+                SetValue(ShortcutKeybindTextProperty, _shortcutInfo.keyBinding.CustomToString());
             }
         }
         static KeyboardShortcut() {
@@ -45,7 +45,7 @@ namespace BetterAW {
             try {
                 _shortcutInfo = keyboardShortcut;
                 SetValue(ShortcutTextProperty, _shortcutInfo.ShortcutText);
-                SetValue(ShortcutKeybindTextProperty, KeybindingToString(_shortcutInfo.keyBinding));
+                SetValue(ShortcutKeybindTextProperty, _shortcutInfo.keyBinding.CustomToString());
                 SetValue(AddShorcutEventProperty, new RelayCommand(() => AddEvent(this)));
                 SetValue(RemoveShorcutEventProperty, new RelayCommand(() => RemoveEvent(this)));
             } catch (Exception ex) {
@@ -59,23 +59,6 @@ namespace BetterAW {
         }
 
         public static readonly DependencyProperty ShortcutTextProperty = DependencyProperty.Register("ShortcutText", typeof(string), typeof(KeyboardShortcut));
-
-        static string KeybindingToString(SortedSet<System.Windows.Forms.Keys> keys) {
-            try {
-                if (keys == null || keys.Count <= 0) {
-                    return "";
-                }
-                string temp = "";
-                foreach (System.Windows.Forms.Keys key in keys) {
-                    temp += Regex.Replace(Regex.Replace(Regex.Replace($"{key}", "[LR]?ControlKey", "Ctrl"), "[LR]?Menu", "Alt"), "[LR]?ShiftKey", "Shift") + "+";
-                }
-                // Return string without the last plus sign.
-                return temp.Substring(0, temp.Length - 1);
-            } catch (Exception ex) {
-                Terminal.Print(string.Format("{0}\n", ex.ToString()));
-                return "";
-            }
-        }
 
         public string ShortcutKeybindText {
             get { return (string)GetValue(ShortcutKeybindTextProperty); }

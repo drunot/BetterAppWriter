@@ -64,13 +64,17 @@
     <Compile Include="Debug\FilePrinter.cs" />
     <Compile Include="DTO\JSONKeybinding.cs" />
     <Compile Include="DTO\JSONLanguage.cs" />
+    <Compile Include="Events\AllKeyUpHookEventArgs.cs" />
+    <Compile Include="Events\KeyDownHookEventArgs.cs" />
     <Compile Include="Events\KeyUpHookEventArgs.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\CarretPosition.cs" />
     <Compile Include="Helpers\Settings.cs" />
     <Compile Include="Helpers\Translations.cs" />
+    <Compile Include="Helpers\TreeSearcher.cs" />
     <Compile Include="Helpers\WindowsKeyboardHooks.cs" />
     <Compile Include="Patches\AppWriterServicePatcher.cs" />
+    <Compile Include="Patches\IPredictionPatcher.cs" />
     <Compile Include="Patches\PredictionsWindowPatcher.cs" />
     <Compile Include="Patches\IPatcher.cs" />
     <Compile Include="Patches\MenuContextMenuPatcher.cs" />
@@ -78,6 +82,7 @@
     <Compile Include="Patches\KeyboardShortcutsPatcher.cs" />
     <Compile Include="Patches\PatchRegister.cs" />
     <Compile Include="Patches\DictionaryPatch.cs" />
+    <Compile Include="Helpers\PredictionWindowHelper.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

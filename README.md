@@ -34,9 +34,7 @@ The other button in the `Better AppWriter Settings` is a terminal for developers
 
 These are the currently planned features. This list is not final, and features might be added and/or removed. Nor is a timeline for when a feature will be implemented given:
 
-- Rebinding of exiting shortcuts
 - Additional shortcuts e.g., for increasing/decreasing the reading speed.
-- Option to have the system ignore all inputs that are assigned to a shortcut in AppWriter.
 - Translation support for all additional texts added by the addon so they follow the selected application language. (I'll only be able to do Danish and English myself)
 
 ## Building

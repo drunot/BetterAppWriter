@@ -10,11 +10,13 @@ namespace sharp_injector.DTO {
     public class JSONKeybinding {
         public string Name;
         public int[] KeyBindings;
+        public bool Removed = false;
 
-        public static JSONKeybinding FromKeyboardShortcutInfo(Patches.KeyboardInternalShortcutInfo keyboardShortcutInfo) {
+        public static JSONKeybinding FromKeyboardShortcutInfo(Patches.KeyboardInternalShortcutInfo keyboardShortcutInfo, bool removed = false) {
             JSONKeybinding ret = new JSONKeybinding();
             ret.Name = keyboardShortcutInfo.Name;
             ret.KeyBindings = keyboardShortcutInfo.keyBinding.Select(x => ((int)x)).ToArray();
+            ret.Removed = removed;
             return ret;
         }
 
@@ -22,6 +24,9 @@ namespace sharp_injector.DTO {
             JSONKeybinding ret = new JSONKeybinding();
             ret.Name = (string)JObj["Name"];
             ret.KeyBindings = JObj["KeyBindings"].Select(x => ((int)x)).ToArray();
+            if(JObj.TryGetValue("Removed", out var value)) {
+                ret.Removed = (bool)value;
+            }
             return ret;
         }
 

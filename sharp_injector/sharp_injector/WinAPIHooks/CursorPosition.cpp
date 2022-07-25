@@ -77,3 +77,19 @@ unsigned int getCurrentScale() {
     
     return ret;
 }
+
+
+unsigned int getMainScale() {
+    DPI_AWARENESS_CONTEXT normalDPIContext = GetThreadDpiAwarenessContext();
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+    POINT ptZero = { 0,0 };
+    HMONITOR m = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+    UINT ret = 0;
+    UINT dpiY;
+    HRESULT temp2 = GetDpiForMonitor(m, MDT_EFFECTIVE_DPI, &ret, &dpiY);
+
+
+    SetThreadDpiAwarenessContext(normalDPIContext);
+    return ret;
+
+}

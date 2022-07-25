@@ -34,6 +34,9 @@ namespace sharp_injector.Helpers {
         [DllImport("WinAPIHooks.dll")]
         public static extern UInt32 getCurrentScale();
 
+        [DllImport("WinAPIHooks.dll")]
+        public static extern UInt32 getMainScale();
+
 
         [StructLayout(LayoutKind.Sequential)]
         public struct DEVMODE {
