@@ -4,7 +4,7 @@
 
 ### Features
 - The prediction window settings under `Write Settings` is revamped.
-- The keyboard shortcuts is completely rewritten
+- The keyboard shortcuts is completely rewritten, and all build-in shortcuts are now available.
   - Fixes known bug: When using some AppWriter built in shortcuts, the key up event is not detected by the better AppWriter shortcut system.
 
 ### Bugfixes
