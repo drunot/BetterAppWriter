@@ -4,6 +4,11 @@
 
 ### Features
 - The prediction window settings under `Write Settings` is revamped.
+- The keyboard shortcuts is completely rewritten
+  - Fixes known bug: When using some AppWriter built in shortcuts, the key up event is not detected by the better AppWriter shortcut system.
+
+### Bugfixes
+- Currently untested: There are some additional problems with the prediction window position, when the main screen does not have 100% scaling. Fix implemented but not tested right now.
 
 ## Version 0.3.0
 
