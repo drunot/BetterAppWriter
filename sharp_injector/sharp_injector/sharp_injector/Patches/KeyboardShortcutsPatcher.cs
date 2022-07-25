@@ -348,16 +348,19 @@ namespace sharp_injector.Patches {
                 return false;
             } else {
                 var method = appWriterService_.GetType().GetMethod("ChangeProfile", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                var OnLanguageClicked = languageWindow_.GetType().GetMethod("OnLanguageClicked", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 bool found = false;
                 string curLang = AppWriterServicePatcher.GetCurrentLanguage();
                 foreach (var lang in LanguageShortcut.EnabledLanguage) {
                     if (curLang == lang) {
                         found = true;
                     } else if (found) {
+                        ((Window)languageWindow_).Dispatcher.Invoke(() => OnLanguageClicked.Invoke(languageWindow_, null));
                         method.Invoke(appWriterService_, new object[] { lang });
                         return false;
                     }
                 }
+                        ((Window)languageWindow_).Dispatcher.Invoke(() => OnLanguageClicked.Invoke(languageWindow_, null));
                 method.Invoke(appWriterService_, new object[] { LanguageShortcut.EnabledLanguage.First() });
             }
             return false;
