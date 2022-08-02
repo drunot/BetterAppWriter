@@ -247,22 +247,6 @@ namespace sharp_injector.Helpers {
                                 }
                             }
 
-                            // Check if the keyboard press was different from the last time.
-                            if (!pressedKeys.SetEquals(lastPressedKeys)) {
-                                // If shurtcuts is not disabled.
-                                if (!DisableShortcuts) {
-                                    // If an event is found run the handler.
-                                    // (TryGetValue(pressedKeys, out var keyboardEvent) for some reason crashes the app.)
-                                    var result = windowsKeyboardEvents.Where(x => x.KeyboardShortcut.SetEquals(pressedKeys));
-                                    if (result.Any()) {
-                                        if (result.First().KeyboardEvent(pressedKeys)) {
-                                            lastPressedKeys = pressedKeys;
-                                            return 1;
-                                        }
-                                    }
-                                }
-                                
-                            }
                             lastPressedKeys = pressedKeys;
                         }
                         break;
@@ -291,13 +275,9 @@ namespace sharp_injector.Helpers {
 
                             // If key up event is not null, invoke it.
                             if(KeyUpHook != null) {
-                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys));
+                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, pressedKeys));
                             }
-                            if(pressedKeys.Count <= 0) {
-                                if(!(AllKeyUpHook is null)) {
-                                    AllKeyUpHook(null, new AllKeyUpHookEventArgs((Keys)vkCode));
-                                }
-                            }
+
                             lastPressedKeys = pressedKeys;
                         }
                         break;
