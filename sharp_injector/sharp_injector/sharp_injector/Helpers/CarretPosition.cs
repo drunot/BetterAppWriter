@@ -211,6 +211,10 @@ namespace sharp_injector.Helpers {
             return dm;
         }
 
+        [DllImport("WinAPIHooks.dll")]
+        public static extern bool moveWinScaled(IntPtr hWnd, int X, int Y, int nWidth, int nHeight);
+
+
         public static double GetScreenScale(Screen screen) {
             DEVMODE dm = GetDevMode(screen);
             return (double)screen.Bounds.Width / (double)dm.dmPelsWidth;

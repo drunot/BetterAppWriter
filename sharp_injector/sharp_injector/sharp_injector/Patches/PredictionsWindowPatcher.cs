@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
+using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Resources;
@@ -244,9 +245,7 @@ namespace sharp_injector.Patches {
                 // Set defualt screen if none is found.
                 Screen screen = lastScreen;
                 var devMode = Helpers.CarretPosition.GetDevMode(screen);
-                // Scale found the old way. THis is untested though.
-                double scale = 96.0 / (double)Helpers.CarretPosition.getCurrentScale();
-                Terminal.Print($"Scale: {scale}\n");
+                
                 // Find correct screen.
                 foreach (Screen allScreen in Screen.AllScreens) {
                     devMode = Helpers.CarretPosition.GetDevMode(allScreen);
@@ -255,10 +254,14 @@ namespace sharp_injector.Patches {
                         break;
                     }
                 }
-                var bounds = new Rectangle(devMode.dmPositionX, devMode.dmPositionY, (int)Math.Round(devMode.dmPelsWidth * scale), (int)Math.Round(devMode.dmPelsHeight * scale));
+                //Terminal.Print($"Helpers.CarretPosition.GetScreenScale(screen): {Helpers.CarretPosition.GetScreenScale(screen)}");
+                var scale = 96.0 / Helpers.CarretPosition.getCurrentScale();
+                var bounds = new Rectangle(devMode.dmPositionX, devMode.dmPositionY, devMode.dmPelsWidth, devMode.dmPelsHeight);
                 Terminal.Print($"Bounds: {screen.Bounds}\n");
-                Terminal.Print($"devMode Bounds: {bounds}\n");
-
+                Terminal.Print($"devMode Bounds: {{X = {devMode.dmPositionX},Y = {devMode.dmPositionY},Width={devMode.dmPelsWidth},Height={devMode.dmPelsHeight}}}\n");
+                Terminal.Print($"devMode Bounds scaled: {bounds}\n");
+                Terminal.Print($"caretInfo: {{X = {caretInfo.X},Y = {caretInfo.Y},Width={caretInfo.Width},Height={caretInfo.Height}}}\n");
+                var wih = new WindowInteropHelper((Window)__instance);
                 // Get ShowPredictionsAtCaret from ConfigurationManager.
                 bool ShowPredictionsAtCaret = (bool)ConfigurationType.GetProperty("ShowPredictionsAtCaret", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(Configuration);
 
@@ -269,36 +272,25 @@ namespace sharp_injector.Patches {
                 var pin_btn = (UIElement)predictionWindowType.GetField("Pin", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance);
                 pin_btn.Visibility = wasCaretFound ? Visibility.Visible : Visibility.Collapsed;
 
-                // Variables for later.
-                System.Windows.Point point;
-                double x1;
-                double y1;
 
                 if (!(bool)predictionWindowType.GetField("_showAtCaret", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)) {
+                    // Variables for later.
+                    System.Windows.Point point;
+                    double x1;
+                    double y1;
                     point = (System.Windows.Point)ConfigurationType.GetProperty("PredictionsLocation", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(Configuration);
                     x1 = point.X;
                     y1 = point.Y;
                     ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                     ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
+                    // Set window poistion
+                    ((Window)__instance).Left = x1;
+                    ((Window)__instance).Top = y1;
                 } else {
                     // If scrren x is less then zero then screen will be to the left of main dispaly and Right bound should be used.
-                    if (bounds.X < 0) {
-                        var ScreenPosRight = devMode.dmPositionX + devMode.dmPelsWidth;
-                        var relativeCaretPos = (caretInfo.X - ScreenPosRight) * scale;
-                        x1 = relativeCaretPos + bounds.Right;
-                    } else {
-                        var relativeCaretPos = (caretInfo.X - devMode.dmPositionX) * scale;
-                        x1 = relativeCaretPos + bounds.Left;
-                    }
+                    int x1 = caretInfo.X;
                     // If scrren y is less then zero then screen will be to the top of main dispaly and Bottom bound should be used.
-                    if (bounds.Y < 0) {
-                        var ScreenPosBottom = devMode.dmPositionY + devMode.dmPelsHeight;
-                        var relativeCaretPos = (caretInfo.Y - ScreenPosBottom) * scale;
-                        y1 = relativeCaretPos + bounds.Bottom;
-                    } else {
-                        var relativeCaretPos = (caretInfo.Y - devMode.dmPositionY) * scale;
-                        y1 = relativeCaretPos + bounds.Top;
-                    }
+                    int y1 = caretInfo.Y;
                     int arrow_height;
                     // Check how the height is off due to arrow visability.
                     if (((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility == Visibility.Collapsed &&
@@ -313,48 +305,51 @@ namespace sharp_injector.Patches {
 
                     // Check if it should be placed bellow, and then place it bellow.
                     if (_prediction_position_setting == predictionWindowPosition.force_bellow
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height)))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - (((Window)__instance).Height + arrow_height) < bounds.Y))) {
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + ((Window)__instance).Height / scale + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height)))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - (((Window)__instance).Height / scale + arrow_height) < bounds.Y))) {
                         // Assume that predictionWindowType should be placed bellow the cursor for now.
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
-                        y1 += caretInfo.Height * scale;
+                        y1 += caretInfo.Height;
 
                     }
-                    x1 += caretInfo.Width * scale;
-                    x1 -= ((Window)__instance).Width / 2.0;
+                    Terminal.Print($"Width: {((Window)__instance).Width}, scale: {scale}\n");
+                    Terminal.Print($"1. x1: {x1}\n");
+                    x1 += caretInfo.Width;
+                    x1 -= (int)Math.Round(((Window)__instance).Width / scale / 2.0);
+                    Terminal.Print($"2. x1: {x1}\n");
 
                     // Check if it should be placed above, and then place it above.
                     if (_prediction_position_setting == predictionWindowPosition.force_above
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + ((Window)__instance).Height + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height + arrow_height) < bounds.Y))) {
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + ((Window)__instance).Height / scale + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height / scale + arrow_height) < bounds.Y))) {
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
-                        y1 -= (((Window)__instance).Height + arrow_height);
+                        y1 -= (int)Math.Round(((Window)__instance).Height / scale + arrow_height);
                     }
                     double leftMargin;
-                    Terminal.Print($"x1: {x1}\n");
+                    Terminal.Print($"3. x1: {x1}\n");
                     Terminal.Print($"caretInfo.X: {caretInfo.X}\n");
                     if ((x1) < bounds.Left) {
 
                         // If window is out of bounds on the left side set margin and redraw arrows.
-                        leftMargin = (((Window)__instance).Width / 2.0) - (bounds.Left - x1);
+                        leftMargin = (((Window)__instance).Width / 2.0) - (bounds.Left - x1) * scale;
                         leftMargin = leftMargin < 0 ? 0 : leftMargin;
                         var arrow_offset = (leftMargin / (((Window)__instance).Width / 2.0)) * -20.0;
                         string arrow_offset_str = (arrow_offset).ToString().Replace(",", ".");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,0 L 20,20 L {arrow_offset_str},20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,20 L {arrow_offset_str},0 L 20,0 Z");
                         x1 = bounds.Left;
-                    } else if ((x1 + ((Window)__instance).Width) > bounds.Right) {
+                    } else if ((x1 + ((Window)__instance).Width / scale) > bounds.Right) {
 
                         // If window is out of bounds on the right side set margin and redraw arrows.
-                        leftMargin = (((Window)__instance).Width * 1.5) - (bounds.Right - x1);
+                        leftMargin = (((Window)__instance).Width * 1.5) - (bounds.Right - x1) * scale;
                         leftMargin = leftMargin > ((Window)__instance).Width ? ((Window)__instance).Width : leftMargin;
                         var arrow_offset = (1.0 - (leftMargin - (((Window)__instance).Width / 2.0)) / (((Window)__instance).Width / 2.0)) * 20.0;
                         string arrow_offset_str = (arrow_offset).ToString().Replace(",", ".");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,0 L {arrow_offset_str},20 L -20,20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse($"M 0,20 L -20,0 L {arrow_offset_str},0 Z");
-                        x1 = bounds.Right - ((Window)__instance).Width;
+                        x1 = (int)Math.Round(bounds.Right - ((Window)__instance).Width / scale);
                     } else {
 
                         // If window is in the inside window bounds set margin and arrows to default.
@@ -362,20 +357,22 @@ namespace sharp_injector.Patches {
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,0 L 20,20 L -20,20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,20 L -20,0 L 20,0 Z");
                     }
-                    Terminal.Print($"x1: {x1}\n");
+                    Terminal.Print($"4. x1: {x1}\n");
 
                     // Set margin to calculated value.
                     ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Margin = new Thickness(leftMargin, 0.0, 0.0, 0.0);
                     ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Margin = new Thickness(leftMargin, 0.0, 0.0, 0.0);
+
+
+                    // Set window position
+                    Helpers.CarretPosition.moveWinScaled(wih.EnsureHandle(), x1, y1, (int)(((Window)__instance).Width * scale), (int)(((Window)__instance).Height * scale));
                 }
 
                 // Remeber last screen. In the case that it cannot find the screen next
                 // time it is very likely that the last screen is the correct one.
                 lastScreen = screen;
 
-                // Set window position
-                ((Window)__instance).Left = x1;
-                ((Window)__instance).Top = y1;
+                
 
                 // Do some limitedContextPopup stuff that isn't completly understood.
                 var limitedContextPopup = (Window)predictionWindowType.GetField("_limitedContextPopup", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance);
