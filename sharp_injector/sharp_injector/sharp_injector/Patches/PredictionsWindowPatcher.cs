@@ -254,13 +254,9 @@ namespace sharp_injector.Patches {
                         break;
                     }
                 }
-                //Terminal.Print($"Helpers.CarretPosition.GetScreenScale(screen): {Helpers.CarretPosition.GetScreenScale(screen)}");
                 var scale = 96.0 / Helpers.CarretPosition.getCurrentScale();
                 var bounds = new Rectangle(devMode.dmPositionX, devMode.dmPositionY, devMode.dmPelsWidth, devMode.dmPelsHeight);
-                Terminal.Print($"Bounds: {screen.Bounds}\n");
-                Terminal.Print($"devMode Bounds: {{X = {devMode.dmPositionX},Y = {devMode.dmPositionY},Width={devMode.dmPelsWidth},Height={devMode.dmPelsHeight}}}\n");
-                Terminal.Print($"devMode Bounds scaled: {bounds}\n");
-                Terminal.Print($"caretInfo: {{X = {caretInfo.X},Y = {caretInfo.Y},Width={caretInfo.Width},Height={caretInfo.Height}}}\n");
+
                 var wih = new WindowInteropHelper((Window)__instance);
                 // Get ShowPredictionsAtCaret from ConfigurationManager.
                 bool ShowPredictionsAtCaret = (bool)ConfigurationType.GetProperty("ShowPredictionsAtCaret", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(Configuration);
@@ -305,31 +301,26 @@ namespace sharp_injector.Patches {
 
                     // Check if it should be placed bellow, and then place it bellow.
                     if (_prediction_position_setting == predictionWindowPosition.force_bellow
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + ((Window)__instance).Height / scale + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height)))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - (((Window)__instance).Height / scale + arrow_height) < bounds.Y))) {
-                        // Assume that predictionWindowType should be placed bellow the cursor for now.
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && !((y1 + (((Window)__instance).Height + arrow_height) / scale + caretInfo.Height) > (bounds.Y + bounds.Height)))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && (y1 - ((((Window)__instance).Height + arrow_height) / scale) < bounds.Y))) {
+                        
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                         y1 += caretInfo.Height;
 
                     }
-                    Terminal.Print($"Width: {((Window)__instance).Width}, scale: {scale}\n");
-                    Terminal.Print($"1. x1: {x1}\n");
                     x1 += caretInfo.Width;
                     x1 -= (int)Math.Round(((Window)__instance).Width / scale / 2.0);
-                    Terminal.Print($"2. x1: {x1}\n");
 
                     // Check if it should be placed above, and then place it above.
                     if (_prediction_position_setting == predictionWindowPosition.force_above
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + ((Window)__instance).Height / scale + caretInfo.Height + arrow_height) > (bounds.Y + bounds.Height))
-                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height / scale + arrow_height) < bounds.Y))) {
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_bellow && (y1 + (((Window)__instance).Height + arrow_height) / scale + caretInfo.Height) > (bounds.Y + bounds.Height))
+                        || (_prediction_position_setting == predictionWindowPosition.prefer_above && !(y1 - (((Window)__instance).Height  + arrow_height) / scale < bounds.Y))) {
                         ((UIElement)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Collapsed;
                         ((UIElement)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Visibility = Visibility.Visible;
-                        y1 -= (int)Math.Round(((Window)__instance).Height / scale + arrow_height);
+                        y1 -= (int)Math.Round((((Window)__instance).Height + arrow_height) / scale);
                     }
                     double leftMargin;
-                    Terminal.Print($"3. x1: {x1}\n");
-                    Terminal.Print($"caretInfo.X: {caretInfo.X}\n");
                     if ((x1) < bounds.Left) {
 
                         // If window is out of bounds on the left side set margin and redraw arrows.
@@ -357,7 +348,6 @@ namespace sharp_injector.Patches {
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,0 L 20,20 L -20,20 Z");
                         ((System.Windows.Shapes.Path)predictionWindowType.GetField("BottomPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Data = Geometry.Parse("M 0,20 L -20,0 L 20,0 Z");
                     }
-                    Terminal.Print($"4. x1: {x1}\n");
 
                     // Set margin to calculated value.
                     ((System.Windows.Shapes.Path)predictionWindowType.GetField("TopPointer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(__instance)).Margin = new Thickness(leftMargin, 0.0, 0.0, 0.0);
