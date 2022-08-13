@@ -93,3 +93,11 @@ unsigned int getMainScale() {
     return ret;
 
 }
+
+BOOL moveWinScaled(HWND wHnd, int x, int y, int width, int height) {
+    DPI_AWARENESS_CONTEXT normalDPIContext = GetThreadDpiAwarenessContext();
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+    auto ret = MoveWindow(wHnd, x, y, width, height, TRUE);
+    SetThreadDpiAwarenessContext(normalDPIContext);
+    return ret;
+}
