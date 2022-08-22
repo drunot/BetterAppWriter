@@ -43,9 +43,11 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
     <Reference Include="System" />
+    <Reference Include="System.Activities" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Workflow.Runtime" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -67,8 +69,10 @@
     <Compile Include="Events\AllKeyUpHookEventArgs.cs" />
     <Compile Include="Events\KeyDownHookEventArgs.cs" />
     <Compile Include="Events\KeyUpHookEventArgs.cs" />
+    <Compile Include="Events\PrioritiesedEvent.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\CarretPosition.cs" />
+    <Compile Include="Helpers\HashCombinator.cs" />
     <Compile Include="Helpers\Settings.cs" />
     <Compile Include="Helpers\Translations.cs" />
     <Compile Include="Helpers\TreeSearcher.cs" />

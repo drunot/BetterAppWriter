@@ -13,6 +13,8 @@ namespace sharp_injector.Events {
         }
         public Keys UpKey { get; set; }
         public SortedSet<Keys> KeysPressed { get; set; }
+
+        public bool Handled = false;
     }
 
     public delegate void KeyUpHookEventHandler(object sender, KeyUpHookEventArgs args);
