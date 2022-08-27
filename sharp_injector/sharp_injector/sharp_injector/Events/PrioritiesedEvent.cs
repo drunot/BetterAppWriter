@@ -1,4 +1,5 @@
-﻿using sharp_injector.Helpers;
+﻿using BetterAW;
+using sharp_injector.Helpers;
 using System;
 using System.Activities.Statements;
 using System.Collections.Generic;
@@ -7,12 +8,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace sharp_injector.Events {
-    internal class PrioritiesedEvent<T> {
+    public class PrioritiesedEvent<T> {
 
         public delegate void EventDelegate(object sender, T eventArgs);
         public struct Event : IComparer<Event> {
             public EventDelegate eventHandler;
             public int priority;
+
+            public Event(EventDelegate EventHandler, int Priority) {
+                eventHandler = EventHandler; priority = Priority;
+            }
+
 
             public static bool operator <(Event first, Event second) {
                 return first.priority < second.priority;
@@ -45,37 +51,57 @@ namespace sharp_injector.Events {
             }
         }
 
-        private List<Event> events;
+        private List<Event> events = new List<Event>();
 
         public static PrioritiesedEvent<T> operator +(PrioritiesedEvent<T> first, Event second) {
-            var idx = first.events.BinarySearch(second);
-            if (idx < 0) {
-                first.events.Insert(~idx, second);
-            } else {
-                first.events.Insert(idx + 1, second);
+            try {
+                var idx = first.events.BinarySearch(second);
+                if (idx < 0) {
+                    first.events.Insert(~idx, second);
+                } else {
+                    first.events.Insert(idx + 1, second);
+                } 
+
+
+            } catch (Exception ex) {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
             return first;
         }
 
         public static PrioritiesedEvent<T> operator -(PrioritiesedEvent<T> first, Event second) {
-            var obj = first.events.FirstOrDefault(x => x.eventHandler == second.eventHandler);
-            if (obj != default(Event)) {
-                first.events.Remove(obj);
+            try {
+                var obj = first.events.FirstOrDefault(x => x.eventHandler == second.eventHandler);
+                if (obj != default(Event)) {
+                    first.events.Remove(obj);
+                }
+
+            } catch (Exception ex) {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
             return first;
         }
 
         public static PrioritiesedEvent<T> operator -(PrioritiesedEvent<T> first, EventDelegate second) {
-            var obj = first.events.FirstOrDefault(x => x.eventHandler == second);
-            if (obj != default(Event)) {
-                first.events.Remove(obj);
+            try {
+                var obj = first.events.FirstOrDefault(x => x.eventHandler == second);
+                if (obj != default(Event)) {
+                    first.events.Remove(obj);
+                }
+
+            } catch (Exception ex) {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
             return first;
         }
 
-        public void Invoke (object sender, T eventArgs){
-            foreach (var e in events) {
-                e.eventHandler.Invoke(sender, eventArgs);
+        public void Invoke(object sender, T eventArgs) {
+            try {
+                foreach (var e in events) {
+                    e.eventHandler.Invoke(sender, eventArgs);
+                }
+            } catch (Exception ex) {
+                Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
     }

@@ -141,8 +141,7 @@ namespace sharp_injector.Helpers {
     }
     public static class WindowsKeyboardHooks {
         public static event KeyUpHookEventHandler KeyUpHook;
-        public static event KeyDownHookEventHandler KeyDownHook;
-        public static event AllKeyUpHookEventHandler AllKeyUpHook;
+        public static PrioritiesedEvent<KeyDownHookEventArgs> KeyDownHook = new PrioritiesedEvent<KeyDownHookEventArgs>();
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
         private const int WM_KEYUP = 0x0101;
@@ -238,13 +237,12 @@ namespace sharp_injector.Helpers {
                             pressedKeys = new SortedSet<Keys>(pressedKeys.Where(x => (GetAsyncKeyState((int)x) & KEY_DOWN_MASK) != 0));
                             // Since this hook fires before GetAsyncKeyState gets the event manually add this key.
                             pressedKeys.Add((Keys)vkCode);
-                            if (!(KeyDownHook is null)) {
 
-                                var e = new KeyDownHookEventArgs((Keys)vkCode, pressedKeys);
-                                KeyDownHook(null, e);
-                                if (e.Handled) {
-                                    return 1;
-                                }
+                            // Run key down event.
+                            var e = new KeyDownHookEventArgs((Keys)vkCode, pressedKeys);
+                            KeyDownHook.Invoke(null, e);
+                            if (e.Handled) {
+                                return 1;
                             }
 
                             lastPressedKeys = pressedKeys;

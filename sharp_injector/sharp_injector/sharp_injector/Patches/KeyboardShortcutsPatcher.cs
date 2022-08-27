@@ -13,11 +13,11 @@ using sharp_injector.DTO;
 using System.IO;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
-using sharp_injector.Helpers;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Threading;
 using HarmonyLib;
+using sharp_injector.Events;
 
 // This is a mess and should proberbly be designed better in the future...
 
@@ -475,14 +475,17 @@ namespace sharp_injector.Patches {
 
         private static void AddNumberedShortcuts() {
             string pwCategoryName = $"{Translation.PredictionWindow} {Translation.ShortcutShortcuts}";
-            void internal_insert_shortcut(object sender, Events.AllKeyUpHookEventArgs e) {
-                // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
-                Thread t = new Thread(() => {
-                    Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
-                    Helpers.WindowsKeyboardHooks.AllKeyUpHook -= internal_insert_shortcut;
-                }
+            void internal_insert_shortcut(object sender, Events.KeyUpHookEventArgs e) {
+                if (e.KeysPressed.Count <= 1 && e.KeysPressed.Contains(e.UpKey)) {
+                    Thread t = new Thread(() => {
+                        Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
+                        Helpers.WindowsKeyboardHooks.KeyUpHook -= internal_insert_shortcut;
+                    }
                 );
-                t.Start();
+                    t.Start();
+                }
+                // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
+
             }
             foreach (var number in Enumerable.Range(1, 10)) {
                 var keyboardShortcut = new SortedSet<Keys>() { Keys.Menu, (Keys)((int)Keys.D0 + number % 10) };
@@ -499,7 +502,7 @@ namespace sharp_injector.Patches {
                             ((Window)predictionWindow_).Dispatcher.Invoke(() => {
                                 Helpers.PredictionWindowHelper.SelectPredictionIndex((Window)predictionWindow_, number - 1);
                             });
-                            Helpers.WindowsKeyboardHooks.AllKeyUpHook += internal_insert_shortcut;
+                            Helpers.WindowsKeyboardHooks.KeyUpHook += internal_insert_shortcut;
                             return true;
 
 
@@ -519,7 +522,7 @@ namespace sharp_injector.Patches {
             }
         }
 
-        static Events.KeyDownHookEventHandler CancelInsertionEventHandler = null;
+        static PrioritiesedEvent<KeyDownHookEventArgs>.EventDelegate CancelInsertionEventHandler = null;
 
         private static void BuildInShortcuts() {
             var toolvarWindowType = toolbarWindow_.GetType();
@@ -659,7 +662,7 @@ namespace sharp_injector.Patches {
                             e.Handled = true;
                         }
                     };
-                    Helpers.WindowsKeyboardHooks.KeyDownHook += CancelInsertionEventHandler;
+                    Helpers.WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(CancelInsertionEventHandler, 1);
                     return false;
                 },
                 null, null,

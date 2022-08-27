@@ -3,19 +3,24 @@
 ## Version 0.4.0
 
 ### Features
+
 - The prediction window settings under `Write Settings` is revamped.
 - The keyboard shortcuts is completely rewritten, and all build-in shortcuts are now available in settings.
   - Fixes known bug: When using some AppWriter built in shortcuts, the key up event is not detected by the better AppWriter shortcut system.
 
 ### Bugfixes
-- Currently untested: There are some additional problems with the prediction window position, when the main screen does not have 100% scaling. Fix implemented but not tested right now.
+
+- There was some additional problems with the prediction window position, when the main screen does not have 100% scaling.
+- Due to problems with the git ignore earlier versions could not build. If you want to build earlier versions include the folder `sharp_injector\sharp_injector\sharp_injector\Debug` from this version in the earlier version.
 
 ## Version 0.3.0
 
 ### Features
+
 - Now the user can choose in the `Write Settings` menu whether they prefer to have the prediction window below or above the cursor.
 
 ### Bugfixes
+
 - The prediction window position calculation is completely rewritten to fix problems with multiple screens with different scaling.
 
 ## Version 0.2.1
