@@ -498,3 +498,5 @@ _deps
 
 # Ignore all build folders
 **/build/*
+
+!sharp_injector/sharp_injector/sharp_injector/Debug
