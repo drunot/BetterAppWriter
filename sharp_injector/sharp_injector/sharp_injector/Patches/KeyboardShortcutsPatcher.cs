@@ -17,18 +17,28 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Threading;
 using HarmonyLib;
+using System.Diagnostics.Tracing;
+using BetterAW.Events;
 using sharp_injector.Events;
+using BetterAW.Helpers;
+using System.Activities.Expressions;
+using System.Activities.Statements;
+using System.Windows.Documents;
 
 // This is a mess and should proberbly be designed better in the future...
 
 namespace sharp_injector.Patches {
     public class BaseInternalShortcutInfo {
         public string Name;
-
+        public string ShortcutText;
+        public object Icon;
     }
     public delegate bool KeyboardInternalShortcutPreamble(KeyboardInternalShortcutInfo self);
     public delegate void KeyboardInternalShortcutPostamble(KeyboardInternalShortcutInfo self);
     public class KeyboardInternalShortcutInfo : BaseInternalShortcutInfo, IComparable<KeyboardInternalShortcutInfo>, ICloneable {
+
+        public delegate bool EventDelegate(KeyboardInternalShortcutInfo self);
+        public delegate bool ConditionDelegate(KeyboardInternalShortcutInfo self, object sender, KeyDownHookEventArgs eventArgs);
         public KeyboardInternalShortcutInfo() { }
         public KeyboardInternalShortcutPreamble shotcutAddPreamble = null;
         public KeyboardInternalShortcutPostamble shotcutAddPostamble = null;
@@ -41,18 +51,60 @@ namespace sharp_injector.Patches {
         public object Clone() {
             return MemberwiseClone();
         }
+        private EventDelegate _underLayingEvent;
 
-        public Helpers.KeyboardEventDelegate KeyboardEvent;
-        public SortedSet<System.Windows.Forms.Keys> keyBinding = new SortedSet<System.Windows.Forms.Keys>();
+        public ConditionDelegate _shortcutCondition = (self, sender, eventArgs) => eventArgs.KeysPressed.SetEquals(self.KeyBinding) && !eventArgs.Handled;
+        public ConditionDelegate ShortcutCondition {
+            get {
+                return _shortcutCondition;
+            }
+            set {
+                _shortcutCondition = value;
+                KeyboardEvent = (sender, e) => {
+                    if (ShortcutCondition(this, sender, e)) {
+                        e.Handled = _underLayingEvent(this);
+                    }
+                };
+            }
+        }
+
+        public EventDelegate UnderLayingEvent {
+            set {
+                _underLayingEvent = value;
+                KeyboardEvent = (sender, e) => {
+                    if (ShortcutCondition(this, sender, e)) {
+                        e.Handled = _underLayingEvent(this);
+                    }
+                };
+            }
+            get {
+                return _underLayingEvent;
+            }
+        }
+        public PrioritiesedEvent<KeyDownHookEventArgs>.EventDelegate KeyboardEvent { get; private set; }
+        private SortedSet<System.Windows.Forms.Keys> _keyBinding = new SortedSet<System.Windows.Forms.Keys>();
+        public SortedSet<System.Windows.Forms.Keys> KeyBinding {
+            get {
+                return _keyBinding;
+            }
+            set {
+                _keyBinding = value;
+                KeyboardEvent = (sender, e) => {
+                    if (ShortcutCondition(this, sender, e)) {
+                        e.Handled = _underLayingEvent(this);
+                    }
+                };
+            }
+        }
         public static bool operator <(KeyboardInternalShortcutInfo lhs, KeyboardInternalShortcutInfo rhs) {
             if (lhs is null) {
                 return !(rhs is null);
             }
-            if (lhs.keyBinding is null) {
-                return !(rhs.keyBinding is null);
+            if (lhs.KeyBinding is null) {
+                return !(rhs.KeyBinding is null);
             }
-            var lhsA = lhs.keyBinding.ToArray();
-            var rhsA = rhs.keyBinding.ToArray();
+            var lhsA = lhs.KeyBinding.ToArray();
+            var rhsA = rhs.KeyBinding.ToArray();
             for (int i = 0; i < lhsA.Length; i++) {
                 if (lhsA[i] < rhsA[i]) {
                     return true;
@@ -69,11 +121,11 @@ namespace sharp_injector.Patches {
             if (rhs is null) {
                 return lhs is null;
             }
-            if (lhs.keyBinding is null) {
+            if (lhs.KeyBinding is null) {
                 return false;
             }
-            var lhsA = lhs.keyBinding.ToArray();
-            var rhsA = rhs.keyBinding.ToArray();
+            var lhsA = lhs.KeyBinding.ToArray();
+            var rhsA = rhs.KeyBinding.ToArray();
             for (int i = 0; i < lhsA.Length; i++) {
                 if (lhsA[i] > rhsA[i]) {
                     return true;
@@ -87,10 +139,10 @@ namespace sharp_injector.Patches {
             if (lhs is null) {
                 return rhs is null;
             }
-            if (lhs.keyBinding is null) {
-                return rhs.keyBinding is null;
+            if (lhs.KeyBinding is null) {
+                return rhs.KeyBinding is null;
             }
-            return lhs.keyBinding.SetEquals(rhs.keyBinding);
+            return lhs.KeyBinding.SetEquals(rhs.KeyBinding);
         }
 
         public static bool operator !=(KeyboardInternalShortcutInfo lhs, KeyboardInternalShortcutInfo rhs) {
@@ -100,10 +152,10 @@ namespace sharp_injector.Patches {
             if (rhs is null) {
                 return !(lhs is null);
             }
-            if (lhs.keyBinding is null) {
-                return !(rhs.keyBinding is null);
+            if (lhs.KeyBinding is null) {
+                return !(rhs.KeyBinding is null);
             }
-            return !lhs.keyBinding.SetEquals(rhs.keyBinding);
+            return !lhs.KeyBinding.SetEquals(rhs.KeyBinding);
         }
 
         public override bool Equals(object obj) {
@@ -117,7 +169,7 @@ namespace sharp_injector.Patches {
             return (obj == null && this == null);
         }
         public override int GetHashCode() {
-            return keyBinding.GetHashCode();
+            return KeyBinding.GetHashCode();
         }
         public int CompareTo(KeyboardInternalShortcutInfo y) {
             if (this == y) {
@@ -138,39 +190,36 @@ namespace sharp_injector.Patches {
 
         }
 
-        static void GetDataFromContextMenuItem(FieldInfo MenuItemInfo, object context, out KeyboardShortcutInfo ksi, out KeyboardInternalShortcutInfo kisi) {
-            ksi = new KeyboardShortcutInfo();
-            kisi = new KeyboardInternalShortcutInfo();
+        static KeyboardInternalShortcutInfo GetDataFromContextMenuItem(FieldInfo MenuItemInfo, object context) {
+            var kisi = new KeyboardInternalShortcutInfo();
             // Get the values of the MenuItem to propagate KeyboardShortcutInfo
-            ksi.Name = MenuItemInfo.Name;
             kisi.Name = MenuItemInfo.Name;
             object MenuItem = MenuItemInfo.GetValue(context);
             // Ignore hidden elements.
             if (((UIElement)MenuItem).Visibility != Visibility.Visible) {
-                ksi = null;
-                kisi = null;
-                return;
+                return null;
             }
-            ksi.ShortcutText = (string)((PropertyInfo)MenuItem.GetType().GetMember("MenuItemContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
-            ksi.Icon = ((PropertyInfo)MenuItem.GetType().GetMember("MenuItemIcon", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
+            kisi.ShortcutText = (string)((PropertyInfo)MenuItem.GetType().GetMember("MenuItemContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
+            kisi.Icon = ((PropertyInfo)MenuItem.GetType().GetMember("MenuItemIcon", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(MenuItem, null);
 
             // Try and get the eventhandler function from the context. Return null if not found.
             var PreviewMouseLeftButtonDownInfo = context.GetType().GetMethod(MenuItemInfo.Name + "_PreviewMouseLeftButtonUp", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
             if (PreviewMouseLeftButtonDownInfo != null) {
-                kisi.KeyboardEvent = (SortedSet<Keys> k) => { PreviewMouseLeftButtonDownInfo.Invoke(context, new object[] { null, null }); return false; };
+                kisi.UnderLayingEvent = (self) => {
+                    PreviewMouseLeftButtonDownInfo.Invoke(context, new object[] { null, null });
+                    return true;
+                };
             } else {
                 Terminal.Print($"{MenuItemInfo.Name}: Was skipped.\n");
-                ksi = null;
-                kisi = null;
-                return;
+                return null;
             }
-            return;
+            return kisi;
         }
 
         // Holds registered keyboard shortcuts.
         static SortedSet<KeyboardInternalShortcutInfo> RegisteredKeyboardShortcuts = new SortedSet<KeyboardInternalShortcutInfo>();
+        static SortedSet<KeyboardInternalShortcutInfo> SpecialKeyboardShortcuts = new SortedSet<KeyboardInternalShortcutInfo>();
         static List<KeyboardInternalShortcutInfo> AvailableKeyboardShortcuts = new List<KeyboardInternalShortcutInfo>();
-        static List<KeyboardInternalShortcutInfo> SpecialKeyboardShortcuts = new List<KeyboardInternalShortcutInfo>();
 
         // Window references
         static object predictionWindow_;
@@ -199,7 +248,7 @@ namespace sharp_injector.Patches {
         }
 
         // Add a keyboardshortcut to be handled.
-        public static void RegisterKeyboardShortcut(KeyboardInternalShortcutInfo keyboardInternalShortcutInfo, bool saveAfter = true) {
+        public static void RegisterKeyboardShortcut(KeyboardInternalShortcutInfo keyboardInternalShortcutInfo, bool saveAfter = true, int priority = 10) {
             // If any of the special post amble functions exist. Add to list so it can be found later
             if (!(keyboardInternalShortcutInfo.shotcutRemovePreamble is null) ||
                 !(keyboardInternalShortcutInfo.shotcutRemovePostamble is null) ||
@@ -207,35 +256,32 @@ namespace sharp_injector.Patches {
                 !(keyboardInternalShortcutInfo.shotcutAddPostamble is null)) {
                 SpecialKeyboardShortcuts.Add(keyboardInternalShortcutInfo);
             }
-
+            Terminal.Print("Test!\n");
             // If preamble is null or the preamble returns true. Add the shortcut normally.
             if (keyboardInternalShortcutInfo.shotcutAddPreamble is null || keyboardInternalShortcutInfo.shotcutAddPreamble(keyboardInternalShortcutInfo)) {
+                Terminal.Print("shotcutAddPreamble!\n");
                 // Check if other shortcuts uses same keybinding.
                 // Could probably be done with RegisteredKeyboardShortcuts.Contains.
-                foreach (var shortcut in RegisteredKeyboardShortcuts) {
-                    if (shortcut.keyBinding.SetEquals(keyboardInternalShortcutInfo.keyBinding)) {
-                        KeyboardShortcuts.ShortcutRemoveInvokeExternal(null, new BetterAW.Events.ShortcutRemoveEventArgs(shortcut.Name, false));
-                        break;
-                    }
+                var shortcut = RegisteredKeyboardShortcuts.FirstOrDefault((s) => s.KeyBinding.SetEquals(keyboardInternalShortcutInfo.KeyBinding));
+                if(shortcut != default(KeyboardInternalShortcutInfo)) {
+                    Terminal.Print("Other removed!\n");
+                    RemoveShortcut(shortcut.Name, false);
                 }
-
                 // If this function already have a shortcut. Remove it.
-                if (RegisteredKeyboardShortcuts.Where(x => x.Name == keyboardInternalShortcutInfo.Name).FirstOrDefault() != default(KeyboardInternalShortcutInfo)) {
-                    var toRemove = RegisteredKeyboardShortcuts.Where(x => x.Name == keyboardInternalShortcutInfo.Name).FirstOrDefault();
-                    if (toRemove != default(KeyboardInternalShortcutInfo)) {
-                        KeyboardShortcuts.ShortcutRemoveInvokeExternal(null, new BetterAW.Events.ShortcutRemoveEventArgs(toRemove.Name, false));
-                    }
-                    RegisteredKeyboardShortcuts.Remove(keyboardInternalShortcutInfo);
+                shortcut = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == keyboardInternalShortcutInfo.Name);
+                if (shortcut != default(KeyboardInternalShortcutInfo)) {
+                    Terminal.Print("Old removed!\n");
+                    RemoveShortcut(shortcut.Name, false);
                 }
-
+                Terminal.Print("Reregister!\n");
                 // Registor the new shortcut.
                 RegisteredKeyboardShortcuts.Add(keyboardInternalShortcutInfo);
-                Helpers.WindowsKeyboardHooks.AddKeyboardEvent(new WindowsKeyboardEvent(keyboardInternalShortcutInfo.keyBinding, keyboardInternalShortcutInfo.KeyboardEvent));
+                WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(keyboardInternalShortcutInfo.KeyboardEvent, priority);
             }
             if (!(keyboardInternalShortcutInfo.shotcutAddPostamble is null)) {
                 keyboardInternalShortcutInfo.shotcutAddPostamble(keyboardInternalShortcutInfo);
             }
-            KeyboardShortcuts.ShortcutAddInvokeExternal(null, new BetterAW.Events.ShortcutAddEventArgs(keyboardInternalShortcutInfo.Name, keyboardInternalShortcutInfo.keyBinding));
+            KeyboardShortcuts.AddKeybordShortcut(keyboardInternalShortcutInfo.Name, keyboardInternalShortcutInfo.KeyBinding);
 
             // Save settings if true.
             if (saveAfter) {
@@ -273,34 +319,12 @@ namespace sharp_injector.Patches {
         /* Unregister a keyboard shortcut */
         public static void UnregisterKeyboardShortcut(string Name, bool saveAfter = true) {
             // Use unregister event for this.
-            KeyboardShortcuts.ShortcutRemoveInvokeExternal(null, new BetterAW.Events.ShortcutRemoveEventArgs(Name, saveAfter));
+            KeyboardShortcuts.RemoveKeybordShortcut(Name);
+            // TODO: Do all the other stuff as whell
         }
 
         public static void UnregisterKeyboardShortcut(KeyboardInternalShortcutInfo keyboardInternalShortcutInfo, bool saveAfter = true) {
             UnregisterKeyboardShortcut(keyboardInternalShortcutInfo.Name, saveAfter);
-        }
-
-
-        public static void UpHandler(object sender, BetterAW.Events.ShortcutStartAddEventArgs eventArgs) {
-            // Private function for regitoring the key on a upKey event.
-            void private_KeyUpHook(object s, Events.KeyUpHookEventArgs e) {
-                try {
-                    // On key up registor keyboard shortcut.
-                    KeyboardInternalShortcutInfo elem = (KeyboardInternalShortcutInfo)AvailableKeyboardShortcuts.Where(x => x.Name == eventArgs.ShortcutName).First().Clone();
-                    elem.keyBinding = e.KeysPressed;
-                    RegisterKeyboardShortcut(elem);
-
-                } catch (Exception ex) {
-                    Terminal.Print(string.Format("{0}\n", ex.ToString()));
-                }
-
-                // Unregistor event until next time.
-                Helpers.WindowsKeyboardHooks.KeyUpHook -= private_KeyUpHook;
-                Helpers.WindowsKeyboardHooks.DisableShortcuts = false;
-            };
-            // Registor private function.
-            Helpers.WindowsKeyboardHooks.KeyUpHook += private_KeyUpHook;
-            Helpers.WindowsKeyboardHooks.DisableShortcuts = true;
         }
 
         private static void FindShortcuts(string windowName, string buttonName) {
@@ -318,19 +342,18 @@ namespace sharp_injector.Patches {
                         foreach (var elem in writeMenu.GetType().GetMembers(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)) {
                             if (elem.MemberType == MemberTypes.Field) {
                                 if (((FieldInfo)elem).FieldType.Name == "ContextMenuItem") {
-                                    GetDataFromContextMenuItem((FieldInfo)elem, writeMenu, out var info, out var internalInfo);
-                                    if (!(info is null)) {
+                                    var internalInfo = GetDataFromContextMenuItem((FieldInfo)elem, writeMenu);
+                                    if (!(internalInfo is null)) {
                                         AvailableKeyboardShortcuts.Add(internalInfo);
                                         foreach (var setting in settings) {
                                             Terminal.Print($"setting.Name: {setting["Name"]}\n");
-                                            Terminal.Print($"infoNonNull.Name: {info.Name}\n");
-                                            if ((string)setting["Name"] == info.Name && !JSONKeybinding.FromJObject(setting).Removed) {
-                                                internalInfo.keyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().keyBinding;
-                                                info.keyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().keyBinding;
+                                            Terminal.Print($"infoNonNull.Name: {internalInfo.Name}\n");
+                                            if ((string)setting["Name"] == internalInfo.Name && !JSONKeybinding.FromJObject(setting).Removed) {
+                                                internalInfo.KeyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().KeyBinding;
                                                 RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)internalInfo.Clone(), false);
                                             }
                                         }
-                                        KeyboardShortcuts.AddShortcut(keyName, info);
+                                        KeyboardShortcuts.AddShortcut(keyName, internalInfo.Name, internalInfo.ShortcutText, internalInfo.KeyBinding);
                                     }
                                 }
                             }
@@ -343,7 +366,7 @@ namespace sharp_injector.Patches {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
-        public static bool ToggleLanguage(SortedSet<Keys> k) {
+        public static bool ToggleLanguage() {
             if (LanguageShortcut.EnabledLanguage.Count <= 0) {
                 return false;
             } else {
@@ -379,37 +402,33 @@ namespace sharp_injector.Patches {
                     }
                 }));
                 var categoryName = BetterAW.Translation.ShortcutToggleLanguagesShortcut;
-                KeyboardShortcutInfo firstInfo = new KeyboardShortcutInfo();
                 KeyboardInternalShortcutInfo firstInternalInfo = new KeyboardInternalShortcutInfo();
-                firstInfo.ShortcutText = Translation.ShortcutToggleLanguages;
-                firstInfo.Name = "LangToggle";
+                firstInternalInfo.ShortcutText = Translation.ShortcutToggleLanguages;
                 firstInternalInfo.Name = "LangToggle";
-                firstInternalInfo.KeyboardEvent = ToggleLanguage;
+                firstInternalInfo.UnderLayingEvent = (self) => ToggleLanguage();
                 var settings = LoadSettngs(settingsPath);
-                var langSettings = settings.Where(x => (string)x["Name"] == firstInfo.Name).ToArray();
+                var langSettings = settings.Where(x => (string)x["Name"] == firstInternalInfo.Name).ToArray();
                 AvailableKeyboardShortcuts.Add(firstInternalInfo);
                 if (langSettings.Length > 0 && !JSONKeybinding.FromJObject(langSettings[0]).Removed) {
-                    firstInternalInfo.keyBinding = JSONKeybinding.FromJObject(langSettings[0]).ToKeyboardShortcutInfo().keyBinding;
-                    firstInfo.keyBinding = JSONKeybinding.FromJObject(langSettings[0]).ToKeyboardShortcutInfo().keyBinding;
+                    firstInternalInfo.KeyBinding = JSONKeybinding.FromJObject(langSettings[0]).ToKeyboardShortcutInfo().KeyBinding;
                     RegisterKeyboardShortcut(firstInternalInfo, false);
                 }
-                KeyboardShortcuts.AddShortcut(categoryName, firstInfo);
+                KeyboardShortcuts.AddShortcut(categoryName, firstInternalInfo.Name, firstInternalInfo.ShortcutText, firstInternalInfo.KeyBinding);
                 var langauges = new SortedDictionary<string, string>(AppWriterServicePatcher.GetAvalibleLanguage().ToDictionary(x => Translations.GetString(x.Replace("-", "_")), x => x));
                 foreach (var langauge in langauges) {
-                    LanguageShortcutInfo lang = new LanguageShortcutInfo();
-                    lang.ShortcutText = langauge.Key;
-                    lang.Name = langauge.Value;
-                    if (icons.ContainsKey(lang.Name)) {
-                        lang.Icon = icons[lang.Name];
+                    object icon = null;
+                    if (icons.ContainsKey(langauge.Value)) {
+                        icon = icons[langauge.Value];
                     }
+                    bool selected = false;
                     foreach (var setting in settings) {
-                        if ((string)setting["Name"] == lang.Name) {
-                            lang.Selected = (bool)setting["Selected"];
-                            LanguageShortcut.EnabledLanguage.Add(lang.Name);
+                        if ((string)setting["Name"] == langauge.Value) {
+                            selected = (bool)setting["Selected"];
+                            LanguageShortcut.EnabledLanguage.Add(langauge.Value);
                             break;
                         }
                     }
-                    KeyboardShortcuts.AddShortcut(categoryName, lang);
+                    KeyboardShortcuts.AddBoolen(categoryName, langauge.Value, langauge.Key, selected, icon);
                 }
                 // Make Language shortcut changes save the json file:
                 LanguageShortcut.ChnagedChekedEvent = (checkedChnaged) => SaveSettings(settingsPath);
@@ -418,30 +437,7 @@ namespace sharp_injector.Patches {
             }
         }
 
-        private static void AddShortcut(string Name,
-            string ShortcutText,
-            string categoryName,
-            SortedSet<Keys> defaultKeyboardShortcut,
-            KeyboardEventDelegate kbEvent,
-            KeyboardInternalShortcutPreamble addPreamble = null,
-            KeyboardInternalShortcutPostamble addPostamble = null,
-            KeyboardInternalShortcutPreamble removePreamble = null,
-            KeyboardInternalShortcutPostamble removePostamble = null) {
-
-            // Create the info classes.
-            KeyboardShortcutInfo info = new KeyboardShortcutInfo();
-            KeyboardInternalShortcutInfo internalInfo = new KeyboardInternalShortcutInfo();
-            info.Name = Name;
-            internalInfo.Name = Name;
-            info.ShortcutText = ShortcutText;
-            internalInfo.shotcutAddPreamble = addPreamble;
-            internalInfo.shotcutAddPostamble = addPostamble;
-            internalInfo.shotcutRemovePreamble = removePreamble;
-            internalInfo.shotcutRemovePostamble = removePostamble;
-            internalInfo.KeyboardEvent = kbEvent;
-
-            // Add to avalible shortcuts:
-            AvailableKeyboardShortcuts.Add(internalInfo);
+        private static void AddShortcut(string categoryName, KeyboardInternalShortcutInfo internalInfo, SortedSet<Keys> defaultKeyboardShortcut = null, int priority = 10) {
 
             // Load settings.
             var settings = LoadSettngs(settingsPath);
@@ -452,73 +448,91 @@ namespace sharp_injector.Patches {
                 if ((string)setting["Name"] == internalInfo.Name) {
                     settingFound = true;
                     if (JSONKeybinding.FromJObject(setting).Removed) {
-                        if (!(removePostamble is null)) {
-                            removePostamble(internalInfo);
+                        if (!(internalInfo.shotcutRemovePostamble is null)) {
+                            internalInfo.shotcutRemovePostamble(internalInfo);
                         }
                         break;
                     }
-                    internalInfo.keyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().keyBinding;
-                    info.keyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().keyBinding;
-                    RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)internalInfo.Clone(), false);
+                    internalInfo.KeyBinding = JSONKeybinding.FromJObject(setting).ToKeyboardShortcutInfo().KeyBinding;
+                    RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)internalInfo.Clone(), false, priority);
                     break;
                 }
             }
             // Else use default.
             if (!settingFound) {
-                internalInfo.keyBinding = defaultKeyboardShortcut;
-                info.keyBinding = defaultKeyboardShortcut;
-                RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)internalInfo.Clone(), false);
+                internalInfo.KeyBinding = defaultKeyboardShortcut;
+                RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)internalInfo.Clone(), false, priority);
             }
-            KeyboardShortcuts.AddShortcut(categoryName, info);
+            KeyboardShortcuts.AddShortcut(categoryName, internalInfo.Name, internalInfo.ShortcutText, internalInfo.KeyBinding);
+            // Add to avalible shortcuts:
+            AvailableKeyboardShortcuts.Add(internalInfo);
+        }
+
+        private static void RemoveShortcut(string name, bool saveSettubgs = true) {
+            var elem = SpecialKeyboardShortcuts.FirstOrDefault(x => x.Name == name);
+            if(elem == default(KeyboardInternalShortcutInfo)) {
+                elem = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == name);
+            }
+            
+            if (elem != default(KeyboardInternalShortcutInfo)) {
+                if (elem.shotcutRemovePreamble is null || elem.shotcutRemovePreamble(elem)) {
+                    if (elem != default(KeyboardInternalShortcutInfo)) {
+                        Helpers.WindowsKeyboardHooks.KeyDownHook -= elem.KeyboardEvent;
+                        if (saveSettubgs) {
+                            SaveSettings(settingsPath);
+                        }
+                    }
+                }
+                if (!(elem.shotcutRemovePostamble is null)) {
+                    elem.shotcutRemovePostamble(elem);
+                }
+                RegisteredKeyboardShortcuts.Remove(elem);
+                KeyboardShortcuts.RemoveKeybordShortcut(elem.Name);
+            } 
         }
 
 
         private static void AddNumberedShortcuts() {
             string pwCategoryName = $"{Translation.PredictionWindow} {Translation.ShortcutShortcuts}";
             void internal_insert_shortcut(object sender, Events.KeyUpHookEventArgs e) {
-                if (e.KeysPressed.Count <= 1 && e.KeysPressed.Contains(e.UpKey)) {
+                if (e.KeysPressed.Count() <= 1 && e.KeysPressed.SetEquals(new SortedSet<Keys>() { e.UpKey })) {
+                    // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
                     Thread t = new Thread(() => {
                         Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
                         Helpers.WindowsKeyboardHooks.KeyUpHook -= internal_insert_shortcut;
                     }
-                );
+                    );
                     t.Start();
                 }
-                // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
-
             }
             foreach (var number in Enumerable.Range(1, 10)) {
                 var keyboardShortcut = new SortedSet<Keys>() { Keys.Menu, (Keys)((int)Keys.D0 + number % 10) };
 
-                AddShortcut($"InsertPredictionIndex{number}",
-                    string.Format(Translation.ShortcutPredictionInsertNumber, number),
-                    pwCategoryName,
-                    keyboardShortcut,
-                    (shortcut) => {
-                        try {
-                            if (predictionWindow_ is null || ((Window)predictionWindow_).Visibility != Visibility.Visible) {
-                                return false;
-                            }
+                KeyboardInternalShortcutInfo info = new KeyboardInternalShortcutInfo($"InsertPredictionIndex{number}");
+                info.ShortcutText = string.Format(Translation.ShortcutPredictionInsertNumber, number);
+                info.UnderLayingEvent = (self) => {
+                    try {
+                        if (predictionWindow_ is null || ((Window)predictionWindow_).Visibility != Visibility.Visible) {
+                            return false;
+                        }
                             ((Window)predictionWindow_).Dispatcher.Invoke(() => {
                                 Helpers.PredictionWindowHelper.SelectPredictionIndex((Window)predictionWindow_, number - 1);
                             });
-                            Helpers.WindowsKeyboardHooks.KeyUpHook += internal_insert_shortcut;
-                            return true;
-
-
-                        } catch (Exception ex) {
-                            Terminal.Print($"{ex}\n");
-                        }
+                        Helpers.WindowsKeyboardHooks.KeyUpHook += internal_insert_shortcut;
+                    } catch (Exception ex) {
+                        Terminal.Print($"{ex}\n");
                         return false;
-                    },
-                    null,
-                    (self) => {
-                        Helpers.PredictionWindowHelper.UpdateShortcutText((Window)predictionWindow_, number - 1, self.keyBinding);
-                    },
-                    null,
-                    (self) => {
-                        Helpers.PredictionWindowHelper.UpdateShortcutText((Window)predictionWindow_, number - 1, null);
-                    });
+                    }
+                    return true;
+                };
+                info.shotcutAddPostamble = (self) => {
+                    Helpers.PredictionWindowHelper.UpdateShortcutText((Window)predictionWindow_, number - 1, self.KeyBinding);
+                };
+                info.shotcutRemovePostamble = (self) => {
+                    Helpers.PredictionWindowHelper.UpdateShortcutText((Window)predictionWindow_, number - 1, null);
+                };
+
+                AddShortcut(pwCategoryName, info, keyboardShortcut);
             }
         }
 
@@ -533,148 +547,183 @@ namespace sharp_injector.Patches {
             string pwCategoryName = $"{Translation.PredictionWindow} {Translation.ShortcutShortcuts}";
 
             var PlayBtn = (UIElement)toolvarWindowType.GetField("PlayBtn", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindow_);
-            AddShortcut("Read",
-                Helpers.Translations.GetString("Read"),
-                tbCategoryName,
-                new SortedSet<Keys>() { Keys.F8 },
-                (shortcut) => {
 
-                    try {
-                        if (PlayBtn.Visibility == Visibility.Visible) {
-                            ((Window)toolbarWindow_).Dispatcher.Invoke(new Action(() => ReadplayFunc.Invoke(toolbarWindow_, new object[] { null, new MouseButtonEventArgs(Mouse.PrimaryDevice, (int)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds, MouseButton.Left) })));
-                        } else {
-                            ((Window)toolbarWindow_).Dispatcher.Invoke(new Action(() => ReadstopFUnc.Invoke(toolbarWindow_, new object[] { null, new MouseButtonEventArgs(Mouse.PrimaryDevice, (int)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds, MouseButton.Left) })));
-                        }
-                        return true;
-                    } catch (Exception ex) {
-                        Terminal.Print(string.Format("{0}\n", ex.ToString()));
-                        return false;
+            // Add read shortcut.
+            KeyboardInternalShortcutInfo readInfo = new KeyboardInternalShortcutInfo("Read");
+            readInfo.ShortcutText = Helpers.Translations.GetString("Read");
+            readInfo.UnderLayingEvent = (self) => {
+                try {
+                    if (PlayBtn.Visibility == Visibility.Visible) {
+                        ((Window)toolbarWindow_).Dispatcher.Invoke(new Action(() => ReadplayFunc.Invoke(toolbarWindow_, new object[] { null, new MouseButtonEventArgs(Mouse.PrimaryDevice, (int)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds, MouseButton.Left) })));
+                    } else {
+                        ((Window)toolbarWindow_).Dispatcher.Invoke(new Action(() => ReadstopFUnc.Invoke(toolbarWindow_, new object[] { null, new MouseButtonEventArgs(Mouse.PrimaryDevice, (int)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds, MouseButton.Left) })));
                     }
-                });
-
-            AddShortcut("NextPrediction",
-                Translation.ShortcutPredictionNavigateDown,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.ControlKey, Keys.Down },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        Helpers.PredictionWindowHelper.IncrementSelection((Window)predictionWindow_);
-                        return true;
-                    }
+                    return true;
+                } catch (Exception ex) {
+                    Terminal.Print(string.Format("{0}\n", ex.ToString()));
                     return false;
-                });
+                }
+            };
+            AddShortcut(tbCategoryName, readInfo, new SortedSet<Keys>() { Keys.F8 });
 
+            // Add next prediction shortcut.
+            KeyboardInternalShortcutInfo nextPredictionInfo = new KeyboardInternalShortcutInfo("NextPrediction");
+            nextPredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateDown;
+            nextPredictionInfo.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    Helpers.PredictionWindowHelper.IncrementSelection((Window)predictionWindow_);
+                    return true;
+                }
+                return false;
+            };
+            AddShortcut(pwCategoryName, nextPredictionInfo, new SortedSet<Keys>() { Keys.ControlKey, Keys.Down });
 
-            AddShortcut("PrevPrediction",
-                Translation.ShortcutPredictionNavigateUp,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.ControlKey, Keys.Up },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        Helpers.PredictionWindowHelper.DecrementSelection((Window)predictionWindow_);
-                        return true;
-                    }
-                    return false;
-                });
+            // Add previus prediction shortcut.
+            KeyboardInternalShortcutInfo prevPredictionInfo = new KeyboardInternalShortcutInfo("PrevPrediction");
+            prevPredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateUp;
+            prevPredictionInfo.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    Helpers.PredictionWindowHelper.DecrementSelection((Window)predictionWindow_);
+                    return true;
+                }
+                return false;
+            };
+            AddShortcut(pwCategoryName, prevPredictionInfo, new SortedSet<Keys>() { Keys.ControlKey, Keys.Up });
 
-            AddShortcut("NextPagePrediction",
-                Translation.ShortcutPredictionNavigateRight,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.ControlKey, Keys.Right },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        Helpers.PredictionWindowHelper.TogglePredictioTypeOrIncrement((Window)predictionWindow_);
-                        return true;
-                    }
-                    return false;
+            // Add next page prediction shortcut.
+            KeyboardInternalShortcutInfo nextPagePredictionInfo = new KeyboardInternalShortcutInfo("NextPagePrediction");
+            nextPagePredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateRight;
+            nextPagePredictionInfo.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    Helpers.PredictionWindowHelper.TogglePredictioTypeOrIncrement((Window)predictionWindow_);
+                    return true;
+                }
+                return false;
+            };
+            AddShortcut(pwCategoryName, nextPagePredictionInfo, new SortedSet<Keys>() { Keys.ControlKey, Keys.Right });
 
-                });
+            // Add previus page prediction shortcut.
+            KeyboardInternalShortcutInfo prevPagePredictionInfo = new KeyboardInternalShortcutInfo("PrevPagePrediction");
+            prevPagePredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateLeft;
+            prevPagePredictionInfo.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    Helpers.PredictionWindowHelper.TogglePredictioTypeOrDecrement((Window)predictionWindow_);
+                    return true;
+                }
+                return false;
 
-            AddShortcut("PrevPagePrediction",
-                Translation.ShortcutPredictionNavigateLeft,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.ControlKey, Keys.Left },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        Helpers.PredictionWindowHelper.TogglePredictioTypeOrDecrement((Window)predictionWindow_);
-                        return true;
-                    }
-                    return false;
+            };
+            AddShortcut(pwCategoryName, prevPagePredictionInfo, new SortedSet<Keys>() { Keys.ControlKey, Keys.Left });
 
-                });
+            // Add hide prediction window shortcut.
+            KeyboardInternalShortcutInfo hidePredWPrediction = new KeyboardInternalShortcutInfo("HidePredWPrediction");
+            hidePredWPrediction.ShortcutText = Translation.ShortcutPredictionHideWindow;
+            hidePredWPrediction.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    ((Window)predictionWindow_).Dispatcher.Invoke(() => {
+                        ((Window)predictionWindow_).Visibility = Visibility.Collapsed;
+                    });
+                    return true;
+                }
+                return false;
+            };
+            AddShortcut(pwCategoryName, hidePredWPrediction, new SortedSet<Keys>() { Keys.Escape });
 
-            AddShortcut("HidePredWPrediction",
-                Translation.ShortcutPredictionHideWindow,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.Escape },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        ((Window)predictionWindow_).Dispatcher.Invoke(() => {
-                            ((Window)predictionWindow_).Visibility = Visibility.Collapsed;
-                        });
-                        return true;
-                    }
-                    return false;
-                });
-
-            AddShortcut("SelectCurrentPrediction",
-                Translation.ShortcutPredictionInsertSelected,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.Enter },
-                (shortcut) => {
-                    if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
-                        return Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
-                    }
-                    return false;
-                });
+            // Add select current prediction shortcut.
+            KeyboardInternalShortcutInfo selectCurrentPredictionInfo = new KeyboardInternalShortcutInfo("SelectCurrentPrediction");
+            selectCurrentPredictionInfo.ShortcutText = Translation.ShortcutPredictionInsertSelected;
+            selectCurrentPredictionInfo.UnderLayingEvent = (self) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    return Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
+                }
+                return false;
+            };
+            AddShortcut(pwCategoryName, selectCurrentPredictionInfo, new SortedSet<Keys>() { Keys.Enter });
 
             AddNumberedShortcuts();
 
-
-
-            AddShortcut("CancelSelectedPrediction",
-                Translation.ShortcutPredictionCancelInsertion,
-                pwCategoryName,
-                new SortedSet<Keys>() { Keys.Escape },
-                (shortcut) => {
-                    Terminal.Print("###############\nTHIS SHOULD NEVER BE HERE\n###############\n");
+            // Add cancel selected prediction shortcut.
+            KeyboardInternalShortcutInfo cancelSelectedPredictionInfo = new KeyboardInternalShortcutInfo("CancelSelectedPrediction");
+            cancelSelectedPredictionInfo.ShortcutText = Translation.ShortcutPredictionCancelInsertion;
+            cancelSelectedPredictionInfo.UnderLayingEvent = (self) => {
+                // Get NavigatingPredictions
+                if (predictionWindow_ is null) {
                     return false;
-                }, (self) => {
-                    if (!(CancelInsertionEventHandler is null)) {
-                        Helpers.WindowsKeyboardHooks.KeyDownHook -= CancelInsertionEventHandler;
+                }
+                var pwType = predictionWindow_.GetType();
+                var _service = pwType.GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(predictionWindow_);
+                var _serviceType = _service.GetType();
+
+                var NavigatingPredictions = (bool)_serviceType.GetField("NavigatingPredictions", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(_service);
+
+
+                if (NavigatingPredictions) {
+                    ((Window)predictionWindow_).Dispatcher.Invoke(() => {
+                        Helpers.PredictionWindowHelper.DeselectPrediction((Window)predictionWindow_);
+                    });
+                    return true;
+                }
+                return false;
+            };
+            cancelSelectedPredictionInfo.ShortcutCondition = (self, sender, eventArgs) => self.KeyBinding.Contains(eventArgs.DownKey) && !eventArgs.Handled;
+            cancelSelectedPredictionInfo.shotcutAddPreamble = (self) => {
+                if(cancelSelectedPredictionInfo.KeyBinding != null) {
+                    // If this function already have a shortcut. Remove it.
+                    var shortcut = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == self.Name);
+                    if (shortcut != default(KeyboardInternalShortcutInfo)) {
+                        Terminal.Print("Old removed!\n");
+                        RemoveShortcut(shortcut.Name, false);
                     }
-                    CancelInsertionEventHandler = (sender, e) => {
-                        // Get NavigatingPredictions
-                        if (predictionWindow_ is null) {
-                            return;
-                        }
-                        var pwType = predictionWindow_.GetType();
-                        var _service = pwType.GetField("_service", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(predictionWindow_);
-                        var _serviceType = _service.GetType();
+                    Terminal.Print("Reregister!\n");
+                    // Registor the new shortcut.
+                    RegisteredKeyboardShortcuts.Add(self);
+                    WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(self.KeyboardEvent, 1);
 
-                        var NavigatingPredictions = (bool)_serviceType.GetField("NavigatingPredictions", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(_service);
+                }
+                return false;
+            };
+            
+            //cancelSelectedPredictionInfo.shotcutRemovePostamble = (self) => {
+            //    if (!(CancelInsertionEventHandler is null)) {
+            //        Helpers.WindowsKeyboardHooks.KeyDownHook -= cancelSelectedPredictionInfo.KeyboardEvent;
+            //    }
+            //};
+            AddShortcut(pwCategoryName, cancelSelectedPredictionInfo, new SortedSet<Keys>() { Keys.Escape });
+        }
 
+        private void AddShortcutHandler(object sender, ShortcutAddEventArgs eventArgs) {
+            void private_KeyUpHook(object s, Events.KeyUpHookEventArgs e) {
+                try {
+                    Terminal.Print("Add Happened?\n");
+                    var sc = e.KeysPressed;
+                    sc.Add(e.UpKey);
+                    // On key up registor keyboard shortcut.
+                    KeyboardInternalShortcutInfo elem = (KeyboardInternalShortcutInfo)AvailableKeyboardShortcuts.First(x => x.Name == eventArgs.ShortcutName).Clone();
+                    elem.KeyBinding = e.KeysPressed;
+                    RegisterKeyboardShortcut((KeyboardInternalShortcutInfo)elem.Clone());
 
-                        if (NavigatingPredictions && self.keyBinding.IsSubsetOf(e.KeysPressed)) {
-                            ((Window)predictionWindow_).Dispatcher.Invoke(() => {
-                                Helpers.PredictionWindowHelper.DeselectPrediction((Window)predictionWindow_);
-                            });
-                            e.Handled = true;
-                        }
-                    };
-                    Helpers.WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(CancelInsertionEventHandler, 1);
-                    return false;
-                },
-                null, null,
-                (self) => {
-                    if (!(CancelInsertionEventHandler is null)) {
-                        Helpers.WindowsKeyboardHooks.KeyDownHook -= CancelInsertionEventHandler;
-                    }
-                });
+                } catch (Exception ex) {
+                    Terminal.Print(string.Format("{0}\n", ex.ToString()));
+                }
+
+                // Unregistor event until next time.
+                Helpers.WindowsKeyboardHooks.KeyUpHook -= private_KeyUpHook;
+                Helpers.WindowsKeyboardHooks.DisableShortcuts = false;
+            };
+
+            WindowsKeyboardHooks.KeyUpHook += private_KeyUpHook;
+            WindowsKeyboardHooks.DisableShortcuts = true;
+        }
+
+        private void RemoveShortcutHandler(object sender, ShortcutRemoveEventArgs eventArgs) {
+            Terminal.Print("Remove Happened?\n");
+            RemoveShortcut(eventArgs.ShortcutName, true);
         }
 
         // Do the patching
         public void Patch() {
+
+
             try {
                 // Use own shortcut system.
                 Helpers.WindowsKeyboardHooks.ApplicationHook();
@@ -682,41 +731,12 @@ namespace sharp_injector.Patches {
                 FindShortcuts("_writeWindow", "WriteSettingsBtn");
                 FindShortcuts("_readWindow", "ReadSettingsBtn");
                 LanguageToggleShortcuts();
-                KeyboardShortcuts.ShortcutStartAdd += UpHandler;
-                KeyboardShortcuts.ShortcutRemove += (s, e) => {
-                    KeyboardInternalShortcutInfo elem;
-                    // Find special functions and run them if they exist. Else run function normally.
-                    var eTemp = SpecialKeyboardShortcuts.Where(x => x.Name == e.ShortcutName);
-                    if (eTemp.Any()) {
-                        var temp = eTemp.First();
-                        if (temp.shotcutRemovePreamble is null || temp.shotcutRemovePreamble(temp)) {
-                            elem = RegisteredKeyboardShortcuts.Where(x => x.Name == e.ShortcutName).FirstOrDefault();
-                            if (elem != default(KeyboardInternalShortcutInfo)) {
-                                Helpers.WindowsKeyboardHooks.RemoveKeyboardEvent(elem.keyBinding);
-                                Terminal.Print($"Remove: {RegisteredKeyboardShortcuts.Remove(elem)}\n");
-                                if (e.SaveSettings) {
-                                    SaveSettings(settingsPath);
-                                }
-                            }
-                        }
-                        if (!(temp.shotcutRemovePostamble is null)) {
-                            temp.shotcutRemovePostamble(temp);
-                        }
-                        return;
-                    }
-                    // Remove the shortcut on this event.
-                    elem = RegisteredKeyboardShortcuts.Where(x => x.Name == e.ShortcutName).FirstOrDefault();
-                    if (elem != default(KeyboardInternalShortcutInfo)) {
-                        Helpers.WindowsKeyboardHooks.RemoveKeyboardEvent(elem.keyBinding);
-                        Terminal.Print($"Remove: {RegisteredKeyboardShortcuts.Remove(elem)}\n");
-                        if (e.SaveSettings) {
-                            SaveSettings(settingsPath);
-                        }
-                    }
-                };
                 Terminal.Print("AvailableKeyboardShortcuts\n");
+
                 foreach (var shortcut in AvailableKeyboardShortcuts) {
                     Terminal.Print($"{shortcut.Name}\n");
+
+
                 }
                 Terminal.Print("RegisteredKeyboardShortcuts\n");
                 foreach (var shortcut in RegisteredKeyboardShortcuts) {
@@ -730,6 +750,8 @@ namespace sharp_injector.Patches {
                 appWriterServiceType_.GetField("EventKeyDown", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(appWriterService_, null);
                 appWriterServiceType_.GetField("EventKeyUp", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(appWriterService_, null);
                 Helpers.PredictionWindowHelper.UpdateShortcutTextOnLoad();
+                KeyboardShortcuts.addEvent += AddShortcutHandler;
+                KeyboardShortcuts.removeEvent += RemoveShortcutHandler;
             } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }

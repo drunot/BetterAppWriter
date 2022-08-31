@@ -10,61 +10,61 @@ namespace BetterAW {
     public class LanguageShortcut : Control {
         // To Do: move EnabledLanguage responsibility away from this class
         public static HashSet<string> EnabledLanguage { get; private set; } = new HashSet<string>();
-        private readonly string _id;
+        public readonly string LanguageName;
 
         public delegate void ChnagedCheked(bool isChecked);
         public static ChnagedCheked ChnagedChekedEvent = (ChnagedCheked) => { };
         public LanguageShortcut() {
-            _id = string.Empty;
+            LanguageName = string.Empty;
             SetValue(CheckedEventProperty, new RelayCommand(() => {
                 // Add language to enabled languages.
-                EnabledLanguage.Add(_id);
+                EnabledLanguage.Add(LanguageName);
                 ChnagedChekedEvent(true);
             }));
             SetValue(UncheckedEventProperty, new RelayCommand(() => {
                 // Remove language to enabled languages.
-                EnabledLanguage.Remove(_id);
+                EnabledLanguage.Remove(LanguageName);
                 ChnagedChekedEvent(false);
             }));
         }
         public LanguageShortcut(string id) {
             try {
-                _id = id;
+                LanguageName = id;
                 SetValue(CheckedEventProperty, new RelayCommand(() => {
                     // Add language to enabled languages.
-                    EnabledLanguage.Add(_id);
+                    EnabledLanguage.Add(LanguageName);
                 }));
                 SetValue(UncheckedEventProperty, new RelayCommand(() => {
                     // Remove language to enabled languages.
-                    EnabledLanguage.Remove(_id);
+                    EnabledLanguage.Remove(LanguageName);
                 }));
             } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));
             }
         }
 
-        public LanguageShortcut(LanguageShortcutInfo info) {
+        public LanguageShortcut(string name, string shortcutText, bool selected, object icon = null) {
             try {
-                _id = info.Name;
-                if (info.Icon != null) {
-                    Icon = info.Icon;
+                LanguageName = name;
+                if (icon != null) {
+                    Icon = icon;
                     SetValue(IconVisibilityProperty, Visibility.Visible);
 
                 }
-                SetValue(ShortcutTextProperty, info.ShortcutText);
+                SetValue(ShortcutTextProperty, shortcutText);
                 SetValue(CheckedEventProperty, new RelayCommand(() => {
                     // Add language to enabled languages.
-                    EnabledLanguage.Add(_id);
+                    EnabledLanguage.Add(LanguageName);
                     ChnagedChekedEvent(true);
                 }));
                 SetValue(UncheckedEventProperty, new RelayCommand(() => {
                     // Remove language to enabled languages.
-                    EnabledLanguage.Remove(_id);
+                    EnabledLanguage.Remove(LanguageName);
                     ChnagedChekedEvent(false);
                 }));
-                SetValue(CheckedProperty, info.Selected);
-                if (info.Selected) {
-                    EnabledLanguage.Add(_id);
+                SetValue(CheckedProperty, selected);
+                if (selected) {
+                    EnabledLanguage.Add(LanguageName);
                 }
             } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));

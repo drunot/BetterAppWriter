@@ -11,12 +11,12 @@ namespace sharp_injector.DTO {
         public string Name;
         public bool Selected;
 
-        public static JSONLanguage FromLangugeShortcutInfo(LanguageShortcutInfo languageShortcutInfo) {
-            JSONLanguage ret = new JSONLanguage();
-            ret.Name = languageShortcutInfo.Name;
-            ret.Selected = languageShortcutInfo.Selected;
-            return ret;
-        }
+        //public static JSONLanguage FromLangugeShortcutInfo(LanguageShortcutInfo languageShortcutInfo) {
+        //    JSONLanguage ret = new JSONLanguage();
+        //    ret.Name = languageShortcutInfo.Name;
+        //    ret.Selected = languageShortcutInfo.Selected;
+        //    return ret;
+        //}
 
         public static JSONLanguage FromJObject(JObject JObj) {
             JSONLanguage ret = new JSONLanguage();
@@ -25,10 +25,10 @@ namespace sharp_injector.DTO {
             return ret;
         }
 
-        public LanguageShortcutInfo ToKeyboardShortcutInfo() {
-            LanguageShortcutInfo info = new LanguageShortcutInfo();
-            info.Name = Name;
-            return info;
-        }
+        //public LanguageShortcutInfo ToKeyboardShortcutInfo() {
+        //    LanguageShortcutInfo info = new LanguageShortcutInfo();
+        //    info.Name = Name;
+        //    return info;
+        //}
     }
 }

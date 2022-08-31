@@ -9,11 +9,11 @@ namespace sharp_injector.Events {
 
     public class KeyDownHookEventArgs : EventArgs {
         public KeyDownHookEventArgs(Keys downKey, SortedSet<Keys> keysPressed, bool shortcutDisabled = false) {
-            UpKey = downKey;
+            DownKey = downKey;
             KeysPressed = keysPressed;
             ShortcutDisabled = shortcutDisabled;
         }
-        public Keys UpKey { get; set; }
+        public Keys DownKey { get; set; }
         public SortedSet<Keys> KeysPressed { get; set; }
 
         public bool Handled = false;

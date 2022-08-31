@@ -10,6 +10,7 @@ using BetterAW;
 using System.Threading;
 using sharp_injector.Events;
 using System.IO;
+using BetterAW.Helpers;
 
 namespace sharp_injector.Helpers {
     public delegate bool KeyboardEventDelegate(SortedSet<Keys> combination);
@@ -189,8 +190,8 @@ namespace sharp_injector.Helpers {
         private static IntPtr SetHook(LowLevelKeyboardProc proc, uint dwThreadID = 0) {
             //using (Process curProcess = Process.GetCurrentProcess())
             //using (ProcessModule curModule = curProcess.MainModule) {
-                return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
-                    LoadLibrary("User32"), dwThreadID);
+            return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
+                LoadLibrary("User32"), dwThreadID);
             //}
         }
 
@@ -211,7 +212,7 @@ namespace sharp_injector.Helpers {
         }
 
 
-        private static int HookCallback( int nCode, int wParam, ref KeyboardHookStruct lParam) {
+        private static int HookCallback(int nCode, int wParam, ref KeyboardHookStruct lParam) {
             if (nCode >= 0) {
                 switch ((int)wParam) {
                     case WM_SYSKEYDOWN:
@@ -270,18 +271,16 @@ namespace sharp_injector.Helpers {
                             // Update PressedKeys.
                             pressedKeys = new SortedSet<Keys>(pressedKeys.Where(x => (GetAsyncKeyState((int)x) & KEY_DOWN_MASK) != 0));
                             pressedKeys.Remove((Keys)vkCode);
-
                             // If key up event is not null, invoke it.
-                            if(KeyUpHook != null) {
-                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, pressedKeys));
+                            if (KeyUpHook != null) {
+                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys));
                             }
-
                             lastPressedKeys = pressedKeys;
                         }
                         break;
                     default:
                         break;
-                    
+
                 }
 
             }
@@ -312,5 +311,5 @@ namespace sharp_injector.Helpers {
         private static extern IntPtr LoadLibrary(string lpFileName);
     }
 
-    
+
 }

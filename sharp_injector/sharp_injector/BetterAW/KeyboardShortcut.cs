@@ -12,22 +12,18 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace BetterAW {
     public class KeyboardShortcut : Control {
         public delegate void KeyboardShortcutEvent(KeyboardShortcut self);
         public static KeyboardShortcutEvent AddEvent = (self) => { };
         public static KeyboardShortcutEvent RemoveEvent = (self) => { };
+        public readonly string ShortcutName;
 
-        private KeyboardShortcutInfo _shortcutInfo;
-
-        public KeyboardShortcutInfo ShortcutInfo {
-            get => _shortcutInfo;
-            set {
-                _shortcutInfo = value;
-                SetValue(ShortcutKeybindTextProperty, _shortcutInfo.keyBinding.CustomToString());
-            }
-        }
+        
+            
+        
         static KeyboardShortcut() {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(KeyboardShortcut), new FrameworkPropertyMetadata(typeof(KeyboardShortcut)));
         }
@@ -41,11 +37,11 @@ namespace BetterAW {
             }
         }
 
-        public KeyboardShortcut(KeyboardShortcutInfo keyboardShortcut) {
+        public KeyboardShortcut(string name, string shortcutText, SortedSet<System.Windows.Forms.Keys> keys) {
             try {
-                _shortcutInfo = keyboardShortcut;
-                SetValue(ShortcutTextProperty, _shortcutInfo.ShortcutText);
-                SetValue(ShortcutKeybindTextProperty, _shortcutInfo.keyBinding.CustomToString());
+                ShortcutName = name;
+                SetValue(ShortcutTextProperty, shortcutText);
+                SetValue(ShortcutKeybindTextProperty, keys.CustomToString());
                 SetValue(AddShorcutEventProperty, new RelayCommand(() => AddEvent(this)));
                 SetValue(RemoveShorcutEventProperty, new RelayCommand(() => RemoveEvent(this)));
             } catch (Exception ex) {

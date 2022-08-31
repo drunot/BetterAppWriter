@@ -15,7 +15,7 @@ namespace sharp_injector.DTO {
         public static JSONKeybinding FromKeyboardShortcutInfo(Patches.KeyboardInternalShortcutInfo keyboardShortcutInfo, bool removed = false) {
             JSONKeybinding ret = new JSONKeybinding();
             ret.Name = keyboardShortcutInfo.Name;
-            ret.KeyBindings = keyboardShortcutInfo.keyBinding.Select(x => ((int)x)).ToArray();
+            ret.KeyBindings = keyboardShortcutInfo.KeyBinding.Select(x => ((int)x)).ToArray();
             ret.Removed = removed;
             return ret;
         }
@@ -33,7 +33,7 @@ namespace sharp_injector.DTO {
         public Patches.KeyboardInternalShortcutInfo ToKeyboardShortcutInfo() {
             Patches.KeyboardInternalShortcutInfo info = new Patches.KeyboardInternalShortcutInfo();
             info.Name = Name;
-            info.keyBinding = new SortedSet<System.Windows.Forms.Keys>(KeyBindings.Select(x => ((System.Windows.Forms.Keys)x)).ToArray());
+            info.KeyBinding = new SortedSet<System.Windows.Forms.Keys>(KeyBindings.Select(x => ((System.Windows.Forms.Keys)x)).ToArray());
             return info;
         }
     }

@@ -7,9 +7,10 @@ using System.Windows.Forms;
 
 namespace BetterAW.Events {
     public class ShortcutAddEventArgs : EventArgs {
-        public ShortcutAddEventArgs(string shortcutName, SortedSet<Keys> shortcut) { ShortcutName = shortcutName; Shortcut = shortcut; }
-        public SortedSet<Keys> Shortcut { get; set; }
+
+        public ShortcutAddEventArgs(string shortcutName) { ShortcutName = shortcutName;}
         public string ShortcutName { get; set; }
+
     }
 
     public delegate void ShortcutAddEventHandler(object sender, ShortcutAddEventArgs e);

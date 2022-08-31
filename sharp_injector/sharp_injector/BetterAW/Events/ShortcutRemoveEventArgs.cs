@@ -8,10 +8,8 @@ using System.Windows.Forms;
 namespace BetterAW.Events {
 
     public class ShortcutRemoveEventArgs : EventArgs {
-        public ShortcutRemoveEventArgs(string shortcutName, bool saveSetting = true) { ShortcutName = shortcutName; SaveSettings = saveSetting; }
-
+        public ShortcutRemoveEventArgs(string shortcutName) { ShortcutName = shortcutName; }
         public string ShortcutName { get; set; }
-        public bool SaveSettings { get; set; }
     }
 
     public delegate void ShortcutRemoveEventHandler(object sender, ShortcutRemoveEventArgs e);

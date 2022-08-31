@@ -1,4 +1,5 @@
 ﻿using BetterAW;
+using Newtonsoft.Json.Linq;
 using sharp_injector.Helpers;
 using System;
 using System.Activities.Statements;
@@ -11,7 +12,7 @@ namespace sharp_injector.Events {
     public class PrioritiesedEvent<T> {
 
         public delegate void EventDelegate(object sender, T eventArgs);
-        public struct Event : IComparer<Event> {
+        public struct Event : IComparable<Event> {
             public EventDelegate eventHandler;
             public int priority;
 
@@ -27,8 +28,8 @@ namespace sharp_injector.Events {
                 return first.priority > second.priority;
             }
 
-            public int Compare(Event first, Event second) {
-                return first.priority - second.priority;
+            public int CompareTo(Event other) {
+                return priority - other.priority;
             }
 
             public static bool operator !=(Event first, Event second) {
@@ -54,13 +55,15 @@ namespace sharp_injector.Events {
         private List<Event> events = new List<Event>();
 
         public static PrioritiesedEvent<T> operator +(PrioritiesedEvent<T> first, Event second) {
+            Terminal.Print($"first.events.Count {first.events.Count}\n");
             try {
                 var idx = first.events.BinarySearch(second);
                 if (idx < 0) {
                     first.events.Insert(~idx, second);
                 } else {
                     first.events.Insert(idx + 1, second);
-                } 
+                }
+                Terminal.Print($"first.events.Count {first.events.Count}\n");
 
 
             } catch (Exception ex) {
@@ -98,6 +101,9 @@ namespace sharp_injector.Events {
         public void Invoke(object sender, T eventArgs) {
             try {
                 foreach (var e in events) {
+                    if (e.eventHandler == null) {
+                        continue;
+                    }
                     e.eventHandler.Invoke(sender, eventArgs);
                 }
             } catch (Exception ex) {
