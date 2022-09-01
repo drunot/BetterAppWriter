@@ -39,10 +39,21 @@ These are the currently planned features. This list is not final, and features m
 
 ## Building
 
-Right now, the building process is not very organized:
+Since CMake still does not support COM references in C# project this project uses a custom build pipeline, where some of the projects are from CMake and others comes from a Visual Studio 2022 solution.
 
-- `nlp_loader` is built with CMake and will generate `nlp.dll`.
-- `sharp_injector` holds `sharp_injector.sln` and will build `BetterAW.dll`, `sharp_injector.dll`, `DictionaryHandler.dll`, and `WinAPIHooks.dll`. It also uses `Newtonsoft.Json.dll`, `0Harmony.dll`, and `System.Windows.Interactivity.dll`, the latter two being NuGet packages. (Named `Lib.Harmony` and `Expression.Blend.Sdk` respectively) All build files from the sharp_injector solution will end up in the sharp_injector project build folder. Right now only the debug build of all C# projects has been tested.
+To build the project run:
+
+```powerShell
+$ ./make.bat
+```
+
+For more information run:
+
+```powerShell
+$ ./make.bat Help
+```
+
+It is a primitive build system. If Visual Studio 2022 is not installed then it will try and use the newest version, but this is untested.
 
 ### Placement of built files
 

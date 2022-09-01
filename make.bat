@@ -98,6 +98,14 @@ echo clean: Cleans the builds
 
 EXIT /B 0
 )
+if  "%~1"=="Help" (
+
+echo To build all run ./make.bat
+echo To build a specific target run ./make.bat ^<target^>
+echo All targets are listed under ./make.bat Targets
+
+EXIT /B 0
+)
 EXIT /B 0
 
 :build_nlp_loader
