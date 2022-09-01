@@ -53,7 +53,7 @@ For more information run:
 $ ./make.bat Help
 ```
 
-It is a primitive build system. If Visual Studio 2022 is not installed then it will try and use the newest version, but this is untested.
+It is a primitive build system. If Visual Studio 2022 is not installed then it will try and use the newest version, but this is untested. If vswhere.exe is not installed in the default location its location can be specified in the environment variable `VSWHERE_LOCATION`.
 
 ### Placement of built files
 

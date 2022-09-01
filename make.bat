@@ -119,8 +119,13 @@ cd %origDir%
 EXIT /B 0
 
 :find_msbuild
-FOR /F "tokens=* USEBACKQ" %%F IN (`"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) DO (SET msbuild="%%F\MSBuild\Current\Bin\amd64\MSBuild.exe")
-echo %msbuild%
+if not "%VSWHERE_LOCATION%"=="" (FOR /F "tokens=* USEBACKQ" %%F IN (`"%VSWHERE_LOCATION%" -latest -property installationPath`) DO (SET msbuild="%%F\MSBuild\Current\Bin\amd64\MSBuild.exe")) else (
+    if not "%programfiles(x86)%" == "" (
+        FOR /F "tokens=* USEBACKQ" %%F IN (`"%programfiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) DO (SET msbuild="%%F\MSBuild\Current\Bin\amd64\MSBuild.exe")
+        ) else (
+        FOR /F "tokens=* USEBACKQ" %%F IN (`"%programfiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) DO (SET msbuild="%%F\MSBuild\Current\Bin\amd64\MSBuild.exe")
+        )
+)
 EXIT /B 0
 
 :build_solution
