@@ -187,4 +187,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="AfterClean">
+    <Delete Files="$(SolutionDir)sharp_injector\bin\Debug\WinAPIHooks.dll" />
+  </Target>
 </Project>
