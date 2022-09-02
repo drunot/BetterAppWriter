@@ -98,7 +98,7 @@
       <AdditionalDependencies>oleacc.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(TargetPath)" "$(SolutionDir)sharp_injector\bin\Debug\"</Command>
+      <Command>xcopy /y "$(TargetPath)" "$(SolutionDir)sharp_injector\costura32\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

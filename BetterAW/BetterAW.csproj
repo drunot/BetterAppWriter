@@ -106,22 +106,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\PWAbove.xaml">
+    <Page Include="Images\PWAbove.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Resource>
-    <Resource Include="Images\PWBellow.xaml">
+    </Page>
+    <Page Include="Images\PWBellow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Resource>
-    <Resource Include="Images\PWFAbove.xaml">
+    </Page>
+    <Page Include="Images\PWFAbove.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Resource>
-    <Resource Include="Images\PWFBellow.xaml">
+    </Page>
+    <Page Include="Images\PWFBellow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Resource>
+    </Page>
     <Page Include="KeyboardShortcuts.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -134,10 +134,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Resource Include="Images\Settings.xaml">
+    <Page Include="Images\Settings.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Resource>
+    </Page>
     <Page Include="Images\Keyboard.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

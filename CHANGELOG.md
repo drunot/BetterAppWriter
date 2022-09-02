@@ -7,6 +7,8 @@
 - The prediction window settings under `Write Settings` is revamped.
 - The keyboard shortcuts is completely rewritten, and all build-in shortcuts are now available in settings.
   - Fixes known bug: When using some AppWriter built in shortcuts, the key up event is not detected by the better AppWriter shortcut system.
+- Changed build system to make it easier to build the whole project.
+- Bundled most `*.dll`s into one single `*.dll` to make installation cleaner.
 
 ### Bugfixes
 

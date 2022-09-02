@@ -111,10 +111,10 @@ EXIT /B 0
 :build_nlp_loader
 set origDir=%cd%
 cd nlp_loader
-mkdir build
+if not exist "build" mkdir "build"
 cd build
 cmake ..
-cmake --build . -t Release
+cmake --build . --config Release
 cd %origDir%
 EXIT /B 0
 
@@ -133,7 +133,7 @@ if "%~1"=="" (%msbuild% BetterAppWriter.sln -property:Configuration=Debug /p:Pla
 EXIT /B 0
 
 :get_all_build_files
-set files=("nlp_loader\Debug\nlp.dll" "Lib\nlp.dll" "BetterAW\bin\Debug\BetterAW.dll" "Lib\BetterAW.dll" "DictionaryHandler\bin\Debug\DictionaryHandler.dll" "Lib\DictionaryHandler.dll" "sharp_injector\bin\Debug\Microsoft.Xaml.Behaviors.dll" "Microsoft.Xaml.Behaviors.dll" "sharp_injector\bin\Debug\Newtonsoft.Json.dll" "Lib\Newtonsoft.Json.dll" "sharp_injector\bin\Debug\sharp_injector.dll" "Lib\sharp_injector.dll" "WinAPIHooks\Debug\WinAPIHooks.dll" "Lib\WinAPIHooks.dll")
+set files=("nlp_loader\build\Release\nlp.dll" "Lib\nlp.dll" "sharp_injector\bin\Debug\Microsoft.Xaml.Behaviors.dll" "Microsoft.Xaml.Behaviors.dll" "sharp_injector\bin\Debug\sharp_injector.dll" "Lib\sharp_injector.dll")
 EXIT /B 0
 
 :post_run_script
