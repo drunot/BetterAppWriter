@@ -214,7 +214,11 @@ namespace sharp_injector.Helpers {
         [DllImport("WinAPIHooks.dll")]
         public static extern bool moveWinScaled(IntPtr hWnd, int X, int Y, int nWidth, int nHeight);
 
+        [DllImport("WinAPIHooks.dll")]
+        public static extern bool moveWinIfObstructing(IntPtr hWnd);
 
+        [DllImport("WinAPIHooks.dll")]
+        public static extern void updateObstructingOldPos(IntPtr hWnd);
         public static double GetScreenScale(Screen screen) {
             DEVMODE dm = GetDevMode(screen);
             return (double)screen.Bounds.Width / (double)dm.dmPelsWidth;

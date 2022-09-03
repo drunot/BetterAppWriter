@@ -1,3 +1,8 @@
 {
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "files.associations": {
+    "*.logika": "scala",
+    "*.cmake": "cmake",
+    "xiosbase": "cpp"
+  }
 }

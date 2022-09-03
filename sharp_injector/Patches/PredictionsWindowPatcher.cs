@@ -25,9 +25,11 @@ namespace sharp_injector.Patches {
     internal class PredictionsWindowPatcher : IPatcher {
         private object _predictionsWindow = null;
         private object _writeWindow = null;
-        public PredictionsWindowPatcher(object predictionsWindow, object writeWindow) {
+        private static object _toolBarWindow = null;
+        public PredictionsWindowPatcher(object predictionsWindow, object writeWindow, object toolBarWindow) {
             _predictionsWindow = predictionsWindow;
             _writeWindow = writeWindow;
+            _toolBarWindow = toolBarWindow;
             PatchRegister.RegisterPatch(this);
         }
 

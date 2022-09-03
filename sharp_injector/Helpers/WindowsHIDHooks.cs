@@ -13,192 +13,64 @@ using System.IO;
 using BetterAW.Helpers;
 
 namespace sharp_injector.Helpers {
-    public delegate bool KeyboardEventDelegate(SortedSet<Keys> combination);
-    public class WindowsKeyboardEvent : IComparable<WindowsKeyboardEvent> {
 
-
-        public bool IgnoreInput { get; set; } = false;
-
-        public KeyboardEventDelegate KeyboardEvent { get; set; }
-        public SortedSet<Keys> KeyboardShortcut { get; set; }
-        public WindowsKeyboardEvent() { }
-        public WindowsKeyboardEvent(SortedSet<Keys> keyboardShortcut, KeyboardEventDelegate keyboardEvent) {
-            KeyboardShortcut = keyboardShortcut;
-            KeyboardEvent = keyboardEvent;
-        }
-
-
-        public static bool operator <(WindowsKeyboardEvent lhs, WindowsKeyboardEvent rhs) {
-            if (lhs is null) {
-                return !(rhs is null);
-            }
-            if (lhs.KeyboardShortcut is null) {
-                return !(rhs.KeyboardShortcut is null);
-            }
-            var lhsA = lhs.KeyboardShortcut.ToArray();
-            var rhsA = rhs.KeyboardShortcut.ToArray();
-            for (int i = 0; i < lhsA.Length; i++) {
-                if (lhsA[i] < rhsA[i]) {
-                    return true;
-                } else if (lhsA[i] > rhsA[i]) {
-                    return false;
-                }
-            }
-            return false;
-        }
-        public static bool operator >(WindowsKeyboardEvent lhs, WindowsKeyboardEvent rhs) {
-            if (lhs is null) {
-                return false;
-            }
-            if (lhs.KeyboardShortcut is null) {
-                return false;
-            }
-            var lhsA = lhs.KeyboardShortcut.ToArray();
-            var rhsA = rhs.KeyboardShortcut.ToArray();
-            for (int i = 0; i < lhsA.Length; i++) {
-                if (lhsA[i] > rhsA[i]) {
-                    return true;
-                } else if (lhsA[i] < rhsA[i]) {
-                    return false;
-                }
-            }
-            return false;
-        }
-        public static bool operator ==(WindowsKeyboardEvent lhs, WindowsKeyboardEvent rhs) {
-            if (lhs is null) {
-                return rhs is null;
-            }
-            if (rhs is null) {
-                return lhs is null;
-            }
-            if (lhs.KeyboardShortcut is null) {
-                return rhs.KeyboardShortcut is null;
-            }
-            return lhs.KeyboardShortcut.SetEquals(rhs.KeyboardShortcut);
-        }
-
-        public static bool operator !=(WindowsKeyboardEvent lhs, WindowsKeyboardEvent rhs) {
-            if (lhs is null) {
-                return !(rhs is null);
-            }
-            if (rhs is null) {
-                return !(lhs is null);
-            }
-            if (lhs.KeyboardShortcut is null) {
-                return !(rhs.KeyboardShortcut is null);
-            }
-            return !lhs.KeyboardShortcut.SetEquals(rhs.KeyboardShortcut);
-        }
-
-        public static bool operator ==(WindowsKeyboardEvent lhs, SortedSet<Keys> rhs) {
-            if (lhs == null) {
-                return false;
-            }
-            if (lhs.KeyboardShortcut == null) {
-                return rhs == null;
-            }
-            return lhs.KeyboardShortcut.SetEquals(rhs);
-        }
-        public static bool operator !=(WindowsKeyboardEvent lhs, SortedSet<Keys> rhs) {
-            if (lhs == null) {
-                return true;
-            }
-            if (lhs.KeyboardShortcut == null) {
-                return rhs != null;
-            }
-            return !lhs.KeyboardShortcut.SetEquals(rhs);
-        }
-        public static implicit operator WindowsKeyboardEvent(SortedSet<Keys> keys) {
-            return new WindowsKeyboardEvent(keys, null);
-        }
-
-        public override bool Equals(object obj) {
-
-            // If obj is WindowsKeyboardEvent then use normal equal
-            if (obj is WindowsKeyboardEvent) {
-                return (obj as WindowsKeyboardEvent) == this;
-            }
-
-            // If obj is WindowsKeyboardEvent then use SortedSet<Keys> equal
-            if (obj is SortedSet<Keys>) {
-                return (obj as SortedSet<Keys>) == this;
-            }
-
-            // Else only return true if both is null
-            return (obj == null && this == null);
-        }
-        public override int GetHashCode() {
-            return KeyboardShortcut.GetHashCode();
-        }
-        public int CompareTo(WindowsKeyboardEvent y) {
-            if (this == y) {
-                return 0;
-            }
-            if (this < y) {
-                return -1;
-            }
-            return 1;
-        }
-    }
-    public static class WindowsKeyboardHooks {
+    public static class WindowsHIDHooks {
         public static event KeyUpHookEventHandler KeyUpHook;
         public static PrioritiesedEvent<KeyDownHookEventArgs> KeyDownHook = new PrioritiesedEvent<KeyDownHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseLButtonDownHook = new PrioritiesedEvent<MouseHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseLButtonUpHook = new PrioritiesedEvent<MouseHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseRButtonDownHook = new PrioritiesedEvent<MouseHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseRButtonUpHook = new PrioritiesedEvent<MouseHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseMButtonDownHook = new PrioritiesedEvent<MouseHookEventArgs>();
+        public static PrioritiesedEvent<MouseHookEventArgs> MouseMButtonUpHook = new PrioritiesedEvent<MouseHookEventArgs>();
         private const int WH_KEYBOARD_LL = 13;
+        private const int WH_MOUSE_LL = 14;
         private const int WM_KEYDOWN = 0x0100;
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
         private const ushort KEY_DOWN_MASK = 0x8000;
-        private static LowLevelKeyboardProc _proc = HookCallback;
-        private static IntPtr _hookID = IntPtr.Zero;
+        private const int WM_LBUTTONDOWN = 0x0201;
+        private const int WM_LBUTTONUP = 0x0202;
+        private const int WM_RBUTTONDOWN = 0x0204;
+        private const int WM_RBUTTONUP = 0x0205;
+        private const int WM_MBUTTONDOWN = 0x0207;
+        private const int WM_MBUTTONUP = 0x0208;
+        private static LowLevelHIDProc _procKeyboard = HookCallbackKeyboard;
+        private static LowLevelHIDProc _procMouse = HookCallbackMouse;
+        private static IntPtr _hookIDKeyboard;
+        private static IntPtr _hookIDMouse;
         private static Thread eventThread = new Thread(HandleActions);
         private static byte[] virtualKeys = new byte[256];
         private static SortedSet<Keys> pressedKeys = new SortedSet<Keys>();
         private static SortedSet<Keys> lastPressedKeys = new SortedSet<Keys>();
-        private static SortedSet<WindowsKeyboardEvent> windowsKeyboardEvents = new SortedSet<WindowsKeyboardEvent>();
         private static void HandleActions(object data) {
-            _hookID = SetHook(_proc);
+            _hookIDKeyboard = SetHook(_procKeyboard, WH_KEYBOARD_LL);
+            _hookIDMouse = SetHook(_procMouse, WH_MOUSE_LL);
             Application.Run();
-            UnhookWindowsHookEx(_hookID);
+            UnhookWindowsHookEx(_hookIDKeyboard);
+            UnhookWindowsHookEx(_hookIDMouse);
         }
 
         public static bool DisableShortcuts { get; set; } = false;
-
-        public static void AddKeyboardEvent(WindowsKeyboardEvent keyboardEvent) {
-
-            // Reset the event if it exists.
-            windowsKeyboardEvents.Remove(keyboardEvent);
-            windowsKeyboardEvents.Add(keyboardEvent);
-        }
-        public static void RemoveKeyboardEvent(WindowsKeyboardEvent keyboardEvent) {
-
-            // Reset the event if it exists.
-            windowsKeyboardEvents.Remove(keyboardEvent);
-        }
-
-        public static bool RemoveKeyboardEvent(SortedSet<Keys> keyboardEvent) {
-
-            // Reset the event if it exists.
-            return windowsKeyboardEvents.Remove(keyboardEvent);
-        }
 
         public static void ApplicationHook() {
             Terminal.Print($"Ran?\n");
             eventThread.Start();
         }
 
-        private static IntPtr SetHook(LowLevelKeyboardProc proc, uint dwThreadID = 0) {
+        private static IntPtr SetHook(LowLevelHIDProc proc, int hookType, uint dwThreadID = 0) {
             //using (Process curProcess = Process.GetCurrentProcess())
             //using (ProcessModule curModule = curProcess.MainModule) {
-            return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
+            return SetWindowsHookEx(hookType, proc,
                 LoadLibrary("User32"), dwThreadID);
             //}
         }
 
-        //private delegate IntPtr LowLevelKeyboardProc(
+        //private delegate IntPtr LowLevelHIDProc(
         //    int nCode, IntPtr wParam, IntPtr lParam);
 
-        public delegate int LowLevelKeyboardProc(
+        public delegate int LowLevelHIDProc(
           int code,
           int wParam,
           ref KeyboardHookStruct lParam);
@@ -212,7 +84,7 @@ namespace sharp_injector.Helpers {
         }
 
 
-        private static int HookCallback(int nCode, int wParam, ref KeyboardHookStruct lParam) {
+        private static int HookCallbackKeyboard(int nCode, int wParam, ref KeyboardHookStruct lParam) {
             if (nCode >= 0) {
                 switch ((int)wParam) {
                     case WM_SYSKEYDOWN:
@@ -284,11 +156,57 @@ namespace sharp_injector.Helpers {
                 }
 
             }
-            return CallNextHookEx(_hookID, nCode, wParam, ref lParam);
+            return CallNextHookEx(_hookIDKeyboard, nCode, wParam, ref lParam);
+        }
+
+        private static int HookCallbackMouse(int nCode, int wParam, ref KeyboardHookStruct lParam) {
+            if (nCode >= 0) {
+                switch ((int)wParam) {
+                    case WM_LBUTTONDOWN: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Left, true);
+                            MouseLButtonDownHook.Invoke(null, eventArgs);
+                        }
+                        break;
+                    case WM_LBUTTONUP: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Left, false);
+                            MouseLButtonUpHook.Invoke(null, eventArgs);
+                        }
+                        break;
+                    case WM_RBUTTONDOWN: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Right, true);
+                            MouseRButtonDownHook.Invoke(null, eventArgs);
+
+                        }
+                        break;
+                    case WM_RBUTTONUP: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Right, false);
+                            MouseRButtonUpHook.Invoke(null, eventArgs);
+
+                        }
+                        break;
+                    case WM_MBUTTONDOWN: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Middle, true);
+                            MouseMButtonDownHook.Invoke(null, eventArgs);
+
+                        }
+                        break;
+                    case WM_MBUTTONUP: {
+                            var eventArgs = new MouseHookEventArgs(MouseButtons.Middle, false);
+                            MouseMButtonUpHook.Invoke(null, eventArgs);
+
+                        }
+                        break;
+                    default:
+                        break;
+
+                }
+
+            }
+            return CallNextHookEx(_hookIDMouse, nCode, wParam, ref lParam);
         }
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr SetWindowsHookEx(int hookType, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+        static extern IntPtr SetWindowsHookEx(int hookType, LowLevelHIDProc lpfn, IntPtr hMod, uint dwThreadId);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]

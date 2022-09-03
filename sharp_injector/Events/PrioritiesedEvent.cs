@@ -55,7 +55,6 @@ namespace sharp_injector.Events {
         private List<Event> events = new List<Event>();
 
         public static PrioritiesedEvent<T> operator +(PrioritiesedEvent<T> first, Event second) {
-            Terminal.Print($"first.events.Count {first.events.Count}\n");
             try {
                 var idx = first.events.BinarySearch(second);
                 if (idx < 0) {
@@ -63,7 +62,6 @@ namespace sharp_injector.Events {
                 } else {
                     first.events.Insert(idx + 1, second);
                 }
-                Terminal.Print($"first.events.Count {first.events.Count}\n");
 
 
             } catch (Exception ex) {
@@ -100,11 +98,11 @@ namespace sharp_injector.Events {
 
         public void Invoke(object sender, T eventArgs) {
             try {
-                foreach (var e in events) {
-                    if (e.eventHandler == null) {
+                for (int i = 0; i < events.Count; i++) {
+                    if (events[i].eventHandler == null) {
                         continue;
                     }
-                    e.eventHandler.Invoke(sender, eventArgs);
+                    events[i].eventHandler.Invoke(sender, eventArgs);
                 }
             } catch (Exception ex) {
                 Terminal.Print(string.Format("{0}\n", ex.ToString()));

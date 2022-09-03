@@ -42,8 +42,8 @@ namespace sharp_injector.Patches {
                     // If the toolbarType is found inject the function.
                     var predictionWindow_Loaded = predictionWType.GetMethod("Window_Loaded", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                     PatchRegister.HarmonyInstance.Patch(predictionWindow_Loaded, new HarmonyMethod(mPrefix_Prediction_Window_Loaded));
-                    
-                    
+
+
                     Thread thread = new Thread(() => {
                         Terminal.Print("Assemblies loaded:\n");
                         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -53,9 +53,10 @@ namespace sharp_injector.Patches {
                         while (menuContextWindow == null) ;
                         MenuContextMenuPatcher mw = new MenuContextMenuPatcher(menuContextWindow);
                         AppWriterServicePatcher asp = new AppWriterServicePatcher(toolBarWindow);
-                        DictionaryPatch tw = new DictionaryPatch(dictionaryWindow);
+                        DictionaryPatch dp = new DictionaryPatch(dictionaryWindow);
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
-                        PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow);
+                        PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow, toolBarWindow);
+                        ToolBarWindowPatcher tbw = new ToolBarWindowPatcher(toolBarWindow);
                         PatchRegister.DoPatching();
                         while (predictionWindow is null) ;
                         PatchRegister.DoPredictionPatching(predictionWindow);

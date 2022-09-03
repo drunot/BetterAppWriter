@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sharp_injector", "sharp_injector\sharp_injector.csproj", "{9D967CD5-010B-44B2-BB98-60743370FC81}"
+	ProjectSection(ProjectDependencies) = postProject
+		{52895DDF-268D-48DB-8255-62FBA1F1764A} = {52895DDF-268D-48DB-8255-62FBA1F1764A}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterAW", "BetterAW\BetterAW.csproj", "{CE306E27-1662-49E5-AF8D-A9439A9CEA4C}"
 EndProject

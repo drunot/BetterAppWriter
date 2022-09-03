@@ -276,7 +276,7 @@ namespace sharp_injector.Patches {
                 Terminal.Print("Reregister!\n");
                 // Registor the new shortcut.
                 RegisteredKeyboardShortcuts.Add(keyboardInternalShortcutInfo);
-                WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(keyboardInternalShortcutInfo.KeyboardEvent, priority);
+                WindowsHIDHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(keyboardInternalShortcutInfo.KeyboardEvent, priority);
             }
             if (!(keyboardInternalShortcutInfo.shotcutAddPostamble is null)) {
                 keyboardInternalShortcutInfo.shotcutAddPostamble(keyboardInternalShortcutInfo);
@@ -477,7 +477,7 @@ namespace sharp_injector.Patches {
             if (elem != default(KeyboardInternalShortcutInfo)) {
                 if (elem.shotcutRemovePreamble is null || elem.shotcutRemovePreamble(elem)) {
                     if (elem != default(KeyboardInternalShortcutInfo)) {
-                        Helpers.WindowsKeyboardHooks.KeyDownHook -= elem.KeyboardEvent;
+                        Helpers.WindowsHIDHooks.KeyDownHook -= elem.KeyboardEvent;
                         if (saveSettubgs) {
                             SaveSettings(settingsPath);
                         }
@@ -499,7 +499,7 @@ namespace sharp_injector.Patches {
                     // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
                     Thread t = new Thread(() => {
                         Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
-                        Helpers.WindowsKeyboardHooks.KeyUpHook -= internal_insert_shortcut;
+                        Helpers.WindowsHIDHooks.KeyUpHook -= internal_insert_shortcut;
                     }
                     );
                     t.Start();
@@ -518,7 +518,7 @@ namespace sharp_injector.Patches {
                             ((Window)predictionWindow_).Dispatcher.Invoke(() => {
                                 Helpers.PredictionWindowHelper.SelectPredictionIndex((Window)predictionWindow_, number - 1);
                             });
-                        Helpers.WindowsKeyboardHooks.KeyUpHook += internal_insert_shortcut;
+                        Helpers.WindowsHIDHooks.KeyUpHook += internal_insert_shortcut;
                     } catch (Exception ex) {
                         Terminal.Print($"{ex}\n");
                         return false;
@@ -677,7 +677,7 @@ namespace sharp_injector.Patches {
                     Terminal.Print("Reregister!\n");
                     // Registor the new shortcut.
                     RegisteredKeyboardShortcuts.Add(self);
-                    WindowsKeyboardHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(self.KeyboardEvent, 1);
+                    WindowsHIDHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(self.KeyboardEvent, 1);
 
                 }
                 return false;
@@ -707,12 +707,12 @@ namespace sharp_injector.Patches {
                 }
 
                 // Unregistor event until next time.
-                Helpers.WindowsKeyboardHooks.KeyUpHook -= private_KeyUpHook;
-                Helpers.WindowsKeyboardHooks.DisableShortcuts = false;
+                Helpers.WindowsHIDHooks.KeyUpHook -= private_KeyUpHook;
+                Helpers.WindowsHIDHooks.DisableShortcuts = false;
             };
 
-            WindowsKeyboardHooks.KeyUpHook += private_KeyUpHook;
-            WindowsKeyboardHooks.DisableShortcuts = true;
+            WindowsHIDHooks.KeyUpHook += private_KeyUpHook;
+            WindowsHIDHooks.DisableShortcuts = true;
         }
 
         private void RemoveShortcutHandler(object sender, ShortcutRemoveEventArgs eventArgs) {
@@ -726,7 +726,7 @@ namespace sharp_injector.Patches {
 
             try {
                 // Use own shortcut system.
-                Helpers.WindowsKeyboardHooks.ApplicationHook();
+                Helpers.WindowsHIDHooks.ApplicationHook();
                 BuildInShortcuts();
                 FindShortcuts("_writeWindow", "WriteSettingsBtn");
                 FindShortcuts("_readWindow", "ReadSettingsBtn");
