@@ -33,64 +33,6 @@ namespace sharp_injector.Patches {
             PatchRegister.RegisterPatch(this);
         }
 
-        UIElement CreateStringSeparator(string separatorMsg) {
-            var sparatorType = Type.GetType("AppWriter.Xaml.Elements.TextSeparator,AppWriter.Xaml.Elements");
-            var toReturn = sparatorType.GetConstructors()[0].Invoke(null);
-            sparatorType.GetProperty("TextSeparatorContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(toReturn, separatorMsg);
-            return (UIElement)toReturn;
-        }
-
-        UIElement CreateContextMenuItem(string menuEntry) {
-
-            var ContextMenuItemType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements");
-            var toReturn = ContextMenuItemType.GetConstructors()[0].Invoke(null);
-            ContextMenuItemType.GetProperty("MenuItemContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(toReturn, menuEntry);
-            return (UIElement)toReturn;
-        }
-
-        UIElement CreateContextMenuButton(string imageURI = "") {
-            Terminal.Print($"Image{imageURI.Split('/').Last().Split('.')[0]}\n");
-            var ContextMenuButtonType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuButton,AppWriter.Xaml.Elements");
-            var toReturn = ContextMenuButtonType.GetConstructors()[0].Invoke(null);
-            if (imageURI != "") {
-                var resourceDictionary = new ResourceDictionary();
-                resourceDictionary.Source =
-                    new Uri(imageURI,
-                            UriKind.RelativeOrAbsolute);
-                Viewbox viewbox = resourceDictionary[$"Image{imageURI.Split('/').Last().Split('.')[0]}"] as Viewbox;
-                viewbox.MaxHeight = 21;
-                viewbox.MaxWidth = 25;
-                viewbox.SnapsToDevicePixels = true;
-                ContextMenuButtonType.GetProperty("Content", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(toReturn, viewbox);
-            }
-
-            return (UIElement)toReturn;
-        }
-
-        UIElement CreateContextMenuButtonLabel(string labelString) {
-            var ContextMenuButtonLabelType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuButtonLabel,AppWriter.Xaml.Elements");
-            var toReturn = ContextMenuButtonLabelType.GetConstructors()[0].Invoke(null);
-            ContextMenuButtonLabelType.GetProperty("Content", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(toReturn, labelString);
-            return (UIElement)toReturn;
-        }
-
-        void ContextMenuButtonLabelSetLabel(UIElement label, string labelString) {
-            var ContextMenuButtonLabelType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuButtonLabel,AppWriter.Xaml.Elements");
-            ContextMenuButtonLabelType.GetProperty("Content", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(label, labelString);
-        }
-
-        void SetTickContextMenuItem(UIElement contextMenuItem, bool Tick) {
-            var ContextMenuItemType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuItem,AppWriter.Xaml.Elements");
-            ContextMenuItemType.GetProperty("IconState", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(contextMenuItem, Tick ? 2 : 0);
-
-        }
-
-        void SetIsCheckedContextMenuItem(UIElement contextMenuItem, bool isChecked) {
-            var ContextMenuButtonType = Type.GetType("AppWriter.Xaml.Elements.ContextMenuButton,AppWriter.Xaml.Elements");
-            ContextMenuButtonType.GetProperty("IsChecked", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).SetValue(contextMenuItem, isChecked);
-
-        }
-
         private enum predictionWindowPosition {
             prefer_bellow,
             force_bellow,
@@ -127,67 +69,67 @@ namespace sharp_injector.Patches {
                                             continue;
                                         }
                                         if (Helpers.Translations.GetString("Read_while_writing") == (string)sparatorType.GetProperty("TextSeparatorContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(sp.Children[i])) {
-                                            sp.Children.Insert(i, CreateStringSeparator(Translation.PredictionWindow));
+                                            sp.Children.Insert(i, Helpers.ContextMenuItemHelper.CreateStringSeparator(Translation.PredictionWindow));
                                             UniformGrid ug = new UniformGrid();
                                             ug.Margin = new Thickness(20, 0, 20, 5);
                                             ug.Columns = 4;
-                                            UIElement pBelowCursor = CreateContextMenuButton("/BetterAW;component/Images/PWBellow.xaml");
-                                            UIElement fBelowCursor = CreateContextMenuButton("/BetterAW;component/Images/PWFBellow.xaml");
-                                            UIElement pAboveCursor = CreateContextMenuButton("/BetterAW;component/Images/PWAbove.xaml");
-                                            UIElement fAboveCursor = CreateContextMenuButton("/BetterAW;component/Images/PWFAbove.xaml");
-                                            UIElement label = CreateContextMenuButtonLabel("");
+                                            UIElement pBelowCursor = Helpers.ContextMenuItemHelper.CreateContextMenuButton("/BetterAW;component/Images/PWBellow.xaml");
+                                            UIElement fBelowCursor = Helpers.ContextMenuItemHelper.CreateContextMenuButton("/BetterAW;component/Images/PWFBellow.xaml");
+                                            UIElement pAboveCursor = Helpers.ContextMenuItemHelper.CreateContextMenuButton("/BetterAW;component/Images/PWAbove.xaml");
+                                            UIElement fAboveCursor = Helpers.ContextMenuItemHelper.CreateContextMenuButton("/BetterAW;component/Images/PWFAbove.xaml");
+                                            UIElement label = Helpers.ContextMenuItemHelper.CreateContextMenuButtonLabel("");
                                             ((System.Windows.Controls.Control)pBelowCursor).PreviewMouseLeftButtonUp += (s, e) => {
-                                                SetIsCheckedContextMenuItem(pBelowCursor, true);
-                                                SetIsCheckedContextMenuItem(fBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(pAboveCursor, false);
-                                                SetIsCheckedContextMenuItem(fAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pBelowCursor, true);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fAboveCursor, false);
                                                 _prediction_position_setting = predictionWindowPosition.prefer_bellow;
                                                 Helpers.Settings.SetSetting<predictionWindowPosition>("PredictionWindowPosition", _prediction_position_setting);
-                                                ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferBelowCursor);
+                                                Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferBelowCarret);
                                             };
                                             ((System.Windows.Controls.Control)fBelowCursor).PreviewMouseLeftButtonUp += (s, e) => {
-                                                SetIsCheckedContextMenuItem(pBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(fBelowCursor, true);
-                                                SetIsCheckedContextMenuItem(pAboveCursor, false);
-                                                SetIsCheckedContextMenuItem(fAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fBelowCursor, true);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fAboveCursor, false);
                                                 _prediction_position_setting = predictionWindowPosition.force_bellow;
                                                 Helpers.Settings.SetSetting<predictionWindowPosition>("PredictionWindowPosition", _prediction_position_setting);
-                                                ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceBelowCursor);
+                                                Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceBelowCarret);
                                             };
                                             ((System.Windows.Controls.Control)pAboveCursor).PreviewMouseLeftButtonUp += (s, e) => {
-                                                SetIsCheckedContextMenuItem(pBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(fBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(pAboveCursor, true);
-                                                SetIsCheckedContextMenuItem(fAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pAboveCursor, true);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fAboveCursor, false);
                                                 _prediction_position_setting = predictionWindowPosition.prefer_above;
                                                 Helpers.Settings.SetSetting<predictionWindowPosition>("PredictionWindowPosition", _prediction_position_setting);
-                                                ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferAboveCursor);
+                                                Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferAboveCarret);
                                             };
                                             ((System.Windows.Controls.Control)fAboveCursor).PreviewMouseLeftButtonUp += (s, e) => {
-                                                SetIsCheckedContextMenuItem(pBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(fBelowCursor, false);
-                                                SetIsCheckedContextMenuItem(pAboveCursor, false);
-                                                SetIsCheckedContextMenuItem(fAboveCursor, true);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fBelowCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pAboveCursor, false);
+                                                Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fAboveCursor, true);
                                                 _prediction_position_setting = predictionWindowPosition.force_above;
                                                 Helpers.Settings.SetSetting<predictionWindowPosition>("PredictionWindowPosition", _prediction_position_setting);
-                                                ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceAboveCursor);
+                                                Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceAboveCarret);
                                             };
                                             switch (_prediction_position_setting) {
                                                 case predictionWindowPosition.prefer_bellow:
-                                                    SetIsCheckedContextMenuItem(pBelowCursor, true);
-                                                    ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferBelowCursor);
+                                                    Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pBelowCursor, true);
+                                                    Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferBelowCarret);
                                                     break;
                                                 case predictionWindowPosition.force_bellow:
-                                                    SetIsCheckedContextMenuItem(fBelowCursor, true);
-                                                    ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceBelowCursor);
+                                                    Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fBelowCursor, true);
+                                                    Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceBelowCarret);
                                                     break;
                                                 case predictionWindowPosition.prefer_above:
-                                                    SetIsCheckedContextMenuItem(pAboveCursor, true);
-                                                    ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferAboveCursor);
+                                                    Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(pAboveCursor, true);
+                                                    Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowPreferAboveCarret);
                                                     break;
                                                 case predictionWindowPosition.force_above:
-                                                    SetIsCheckedContextMenuItem(fAboveCursor, true);
-                                                    ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceAboveCursor);
+                                                    Helpers.ContextMenuItemHelper.SetIsCheckedContextMenuItem(fAboveCursor, true);
+                                                    Helpers.ContextMenuItemHelper.ContextMenuButtonLabelSetLabel(label, Translation.PredictionWindowForceAboveCarret);
                                                     break;
                                             }
                                             ug.Children.Insert(0, pBelowCursor);

@@ -56,7 +56,7 @@ namespace sharp_injector.Patches {
                         DictionaryPatch dp = new DictionaryPatch(dictionaryWindow);
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
                         PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow, toolBarWindow);
-                        ToolBarWindowPatcher tbw = new ToolBarWindowPatcher(toolBarWindow);
+                        ToolBarWindowPatcher tbw = new ToolBarWindowPatcher(toolBarWindow, menuWriteSettingsContextWindow);
                         PatchRegister.DoPatching();
                         while (predictionWindow is null) ;
                         PatchRegister.DoPredictionPatching(predictionWindow);

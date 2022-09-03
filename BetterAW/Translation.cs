@@ -24,10 +24,11 @@ namespace BetterAW {
         public static string ShortcutPredictionInsertNumber = "Insert prediction number {0}";
         public static string ShortcutPredictionCancelInsertion = "Cancel prediction insertion";
         public static string PredictionWindow = "Prediction Window";
-        public static string PredictionWindowPreferBelowCursor = "Prefer below cursor";
-        public static string PredictionWindowForceBelowCursor = "Force below cursor";
-        public static string PredictionWindowPreferAboveCursor = "Prefer above cursor";
-        public static string PredictionWindowForceAboveCursor = "Force above cursor";
-        
+        public static string PredictionWindowPreferBelowCarret = "Prefer below carret";
+        public static string PredictionWindowForceBelowCarret = "Force below carret";
+        public static string PredictionWindowPreferAboveCarret = "Prefer above carret";
+        public static string PredictionWindowForceAboveCarret = "Force above carret";
+        public static string ToolbarAvoidCarret = "Toolbar avoid carret";
+
     }
 }

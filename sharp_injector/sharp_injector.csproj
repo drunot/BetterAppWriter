@@ -213,6 +213,7 @@
     <Compile Include="Events\PrioritiesedEvent.cs" />
     <Compile Include="Helpers\AppDomainHelper.cs" />
     <Compile Include="Helpers\CarretPosition.cs" />
+    <Compile Include="Helpers\ContextMenuItemHelper.cs" />
     <Compile Include="Helpers\HashCombinator.cs" />
     <Compile Include="Helpers\Settings.cs" />
     <Compile Include="Helpers\Translations.cs" />
