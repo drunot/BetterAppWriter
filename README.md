@@ -11,6 +11,8 @@ What this app currently does add:
 - Additional keyboard shortcuts and all shortcuts are configurable.
 - Oxford Advanced Learners dictionary lookups when the language is set to English (Only available online.)
 - Better detection of predictions window position.
+- Moves the toolbar if the text cursor is underneath it.
+- The additional text that is added by the addon is currently only supported in English and Danish.
 
 ## Installation
 
@@ -21,7 +23,6 @@ When installing this these steps need to be followed:
 - Rename the file in `/<InstallPath>/Lib/nlp.dll` to `/<InstallPath>/Lib/real_nlp.dll`
 - Copy files from the install zip to the install path. After this everything should work as expected.
 - To check if everything is working check if the `Better AppWriter Version` is present in the menu to the right.
-- Change the position of the predictions window relative to the text cursor.
 
 ## How to use
 
@@ -36,8 +37,6 @@ The other button in the `Better AppWriter Settings` is a terminal for developers
 These are the currently planned features. This list is not final, and features might be added and/or removed. Nor is a timeline for when a feature will be implemented given:
 
 - Additional shortcuts e.g., for increasing/decreasing the reading speed.
-- Translation support for all additional texts added by the addon so they follow the selected application language. (I'll only be able to do Danish and English myself)
-- Move the toolbar if the text cursor is underneath it.
 
 ## Building
 

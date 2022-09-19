@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterAW"
         mc:Ignorable="d"
-        Title="{x:Static local:Translation.BetterAppWriterSettings}" Height="225" Width="400" ResizeMode="NoResize" WindowStyle="None" Background="Transparent" AllowsTransparency="True" >
+        Title="{Binding Path=BetterAppWriterSettings, Source={x:Static Member=local:Translation.Instance}}" Height="225" Width="400" ResizeMode="NoResize" WindowStyle="None" Background="Transparent" AllowsTransparency="True" >
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -16,14 +16,14 @@
             </ResourceDictionary.MergedDictionaries>
             </ResourceDictionary>
     </Window.Resources>
-    <local:BaseWindowControl Title="{x:Static local:Translation.BetterAppWriterSettings}" >
+    <local:BaseWindowControl Title="{Binding Path=BetterAppWriterSettings, Source={x:Static local:Translation.Instance}}" >
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="KeyboardShortBtn" Margin="5"  ToolTip="{x:Static local:Translation.KeyboardShortcutsTooltip}" Style="{StaticResource MenuButton}" Click="KeyboardShortBtn_Click" Content="{StaticResource ImageKeyboard}"/>
-            <Button x:Name="TerminalBtn" Margin="5" Grid.Column="1" Click="TerminalBtn_Click" ToolTip="{x:Static local:Translation.TerminalButtonTooltip}" Style="{StaticResource MenuButton}" Content="{StaticResource ImageTerminal}"/>
+            <Button x:Name="KeyboardShortBtn" Margin="5"  ToolTip="{Binding Path=KeyboardShortcutsTooltip, Source={x:Static local:Translation.Instance}}" Style="{StaticResource MenuButton}" Click="KeyboardShortBtn_Click" Content="{StaticResource ImageKeyboard}"/>
+            <Button x:Name="TerminalBtn" Margin="5" Grid.Column="1" Click="TerminalBtn_Click" ToolTip="{Binding Path=TerminalButtonTooltip, Source={x:Static local:Translation.Instance}}" Style="{StaticResource MenuButton}" Content="{StaticResource ImageTerminal}"/>
         </Grid>
     </local:BaseWindowControl>
 </Window>

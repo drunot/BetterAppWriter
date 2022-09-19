@@ -336,7 +336,7 @@ namespace sharp_injector.Patches {
                     try {
                         // Get the toolTip from the WriteSettingsBtn to use in the Title for the shortcuts.
                         object WriteSettingsBtn = toolbarWindow_.GetType().GetField(buttonName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindow_);
-                        var keyName = $"{GetStringFromBtn(WriteSettingsBtn)} {BetterAW.Translation.ShortcutShortcuts}";
+                        var keyName = $"{GetStringFromBtn(WriteSettingsBtn)} {BetterAW.Translation.Instance.ShortcutShortcuts}";
                         var settings = LoadSettngs(settingsPath);
                         // Get all menuContextItems, and add them to the keyboard shortcuts if their event handler is found.
                         foreach (var elem in writeMenu.GetType().GetMembers(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)) {
@@ -401,9 +401,9 @@ namespace sharp_injector.Patches {
                         icons.Add(lang, icon);
                     }
                 }));
-                var categoryName = BetterAW.Translation.ShortcutToggleLanguagesShortcut;
+                var categoryName = BetterAW.Translation.Instance.ShortcutToggleLanguagesShortcut;
                 KeyboardInternalShortcutInfo firstInternalInfo = new KeyboardInternalShortcutInfo();
-                firstInternalInfo.ShortcutText = Translation.ShortcutToggleLanguages;
+                firstInternalInfo.ShortcutText = Translation.Instance.ShortcutToggleLanguages;
                 firstInternalInfo.Name = "LangToggle";
                 firstInternalInfo.UnderLayingEvent = (self) => ToggleLanguage();
                 var settings = LoadSettngs(settingsPath);
@@ -493,7 +493,7 @@ namespace sharp_injector.Patches {
 
 
         private static void AddNumberedShortcuts() {
-            string pwCategoryName = $"{Translation.PredictionWindow} {Translation.ShortcutShortcuts}";
+            string pwCategoryName = $"{Translation.Instance.PredictionWindow} {Translation.Instance.ShortcutShortcuts}";
             void internal_insert_shortcut(object sender, Events.KeyUpHookEventArgs e) {
                 if (e.KeysPressed.Count() <= 1 && e.KeysPressed.SetEquals(new SortedSet<Keys>() { e.UpKey })) {
                     // Running this in a new thread somehow fixes a problem with using alt in the selection shortcut.
@@ -509,7 +509,7 @@ namespace sharp_injector.Patches {
                 var keyboardShortcut = new SortedSet<Keys>() { Keys.Menu, (Keys)((int)Keys.D0 + number % 10) };
 
                 KeyboardInternalShortcutInfo info = new KeyboardInternalShortcutInfo($"InsertPredictionIndex{number}");
-                info.ShortcutText = string.Format(Translation.ShortcutPredictionInsertNumber, number);
+                info.ShortcutText = string.Format(Translation.Instance.ShortcutPredictionInsertNumber, number);
                 info.UnderLayingEvent = (self) => {
                     try {
                         if (predictionWindow_ is null || ((Window)predictionWindow_).Visibility != Visibility.Visible) {
@@ -543,8 +543,8 @@ namespace sharp_injector.Patches {
             //MouseButtonEventArgs
             var ReadplayFunc = toolvarWindowType.GetMethod("PlayBtn_Click", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
             var ReadstopFUnc = toolvarWindowType.GetMethod("StopBtn_Click", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-            string tbCategoryName = $"{Translation.Toolbar} {Translation.ShortcutShortcuts}";
-            string pwCategoryName = $"{Translation.PredictionWindow} {Translation.ShortcutShortcuts}";
+            string tbCategoryName = $"{Translation.Instance.Toolbar} {Translation.Instance.ShortcutShortcuts}";
+            string pwCategoryName = $"{Translation.Instance.PredictionWindow} {Translation.Instance.ShortcutShortcuts}";
 
             var PlayBtn = (UIElement)toolvarWindowType.GetField("PlayBtn", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).GetValue(toolbarWindow_);
 
@@ -568,7 +568,7 @@ namespace sharp_injector.Patches {
 
             // Add next prediction shortcut.
             KeyboardInternalShortcutInfo nextPredictionInfo = new KeyboardInternalShortcutInfo("NextPrediction");
-            nextPredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateDown;
+            nextPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateDown;
             nextPredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.IncrementSelection((Window)predictionWindow_);
@@ -580,7 +580,7 @@ namespace sharp_injector.Patches {
 
             // Add previus prediction shortcut.
             KeyboardInternalShortcutInfo prevPredictionInfo = new KeyboardInternalShortcutInfo("PrevPrediction");
-            prevPredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateUp;
+            prevPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateUp;
             prevPredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.DecrementSelection((Window)predictionWindow_);
@@ -592,7 +592,7 @@ namespace sharp_injector.Patches {
 
             // Add next page prediction shortcut.
             KeyboardInternalShortcutInfo nextPagePredictionInfo = new KeyboardInternalShortcutInfo("NextPagePrediction");
-            nextPagePredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateRight;
+            nextPagePredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateRight;
             nextPagePredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.TogglePredictioTypeOrIncrement((Window)predictionWindow_);
@@ -604,7 +604,7 @@ namespace sharp_injector.Patches {
 
             // Add previus page prediction shortcut.
             KeyboardInternalShortcutInfo prevPagePredictionInfo = new KeyboardInternalShortcutInfo("PrevPagePrediction");
-            prevPagePredictionInfo.ShortcutText = Translation.ShortcutPredictionNavigateLeft;
+            prevPagePredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateLeft;
             prevPagePredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.TogglePredictioTypeOrDecrement((Window)predictionWindow_);
@@ -617,7 +617,7 @@ namespace sharp_injector.Patches {
 
             // Add hide prediction window shortcut.
             KeyboardInternalShortcutInfo hidePredWPrediction = new KeyboardInternalShortcutInfo("HidePredWPrediction");
-            hidePredWPrediction.ShortcutText = Translation.ShortcutPredictionHideWindow;
+            hidePredWPrediction.ShortcutText = Translation.Instance.ShortcutPredictionHideWindow;
             hidePredWPrediction.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     ((Window)predictionWindow_).Dispatcher.Invoke(() => {
@@ -631,7 +631,7 @@ namespace sharp_injector.Patches {
 
             // Add select current prediction shortcut.
             KeyboardInternalShortcutInfo selectCurrentPredictionInfo = new KeyboardInternalShortcutInfo("SelectCurrentPrediction");
-            selectCurrentPredictionInfo.ShortcutText = Translation.ShortcutPredictionInsertSelected;
+            selectCurrentPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionInsertSelected;
             selectCurrentPredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     return Helpers.PredictionWindowHelper.InsertSelectedPrediction((Window)predictionWindow_);
@@ -644,7 +644,7 @@ namespace sharp_injector.Patches {
 
             // Add cancel selected prediction shortcut.
             KeyboardInternalShortcutInfo cancelSelectedPredictionInfo = new KeyboardInternalShortcutInfo("CancelSelectedPrediction");
-            cancelSelectedPredictionInfo.ShortcutText = Translation.ShortcutPredictionCancelInsertion;
+            cancelSelectedPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionCancelInsertion;
             cancelSelectedPredictionInfo.UnderLayingEvent = (self) => {
                 // Get NavigatingPredictions
                 if (predictionWindow_ is null) {

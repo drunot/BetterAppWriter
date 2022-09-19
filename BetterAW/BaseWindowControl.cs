@@ -38,7 +38,11 @@ namespace BetterAW {
         public static readonly DependencyProperty MoveEventProperty = DependencyProperty.Register("MoveEvent", typeof(RelayCommand), typeof(BaseWindowControl), new UIPropertyMetadata());
 
         private void DragMove() {
-            Window.GetWindow(this).DragMove();
+            try {
+                Window.GetWindow(this).DragMove();
+            } catch (InvalidOperationException e) {
+
+            }
         }
 
         public String Title {

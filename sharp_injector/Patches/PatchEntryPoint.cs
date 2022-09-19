@@ -10,6 +10,7 @@ using sharp_injector.Debug;
 using sharp_injector.Helpers;
 using System.Threading;
 using System.Reflection.Emit;
+using System.IO;
 
 namespace sharp_injector.Patches {
     class PatchEntryPoint {
@@ -18,10 +19,23 @@ namespace sharp_injector.Patches {
         static private object menuContextWindow = null;
         static private object menuWriteSettingsContextWindow = null;
         static private object dictionaryWindow = null;
+        
+        static private void LoadTranslation() {
+            try {
+                var langPath = $"Lib\\Translations\\{Translations.GetString("Language")}.lang";
+                if (File.Exists(langPath)) {
+                    BetterAW.Translation.ReadFromBinaryFile(langPath);
+                }
+            } catch (Exception ex) {
+                Terminal.Print($"{ex}\n");
+            }
+        }
+
         public static void Patch() {
             // Use debugging for now.
             // Harmony.DEBUG = true;
             // Registor harmony.
+            Terminal.Print(string.Format($"{BetterAW.Translation.Instance.BetterAppWriterVersion}\n", $"{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Major}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Minor}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Build}"));
             PatchRegister.HarmonyInstance = new Harmony("com.antonvigensmolarz.appwriter.betteraw");
             ClassPrinter.PrintMembers("AppWriter.AppWriterService,AppWriter.Core");
 
@@ -57,9 +71,11 @@ namespace sharp_injector.Patches {
                         KeyboardShortcutsPatcher ks = new KeyboardShortcutsPatcher(predictionWindow, toolBarWindow);
                         PredictionsWindowPatcher pw = new PredictionsWindowPatcher(predictionWindow, menuWriteSettingsContextWindow, toolBarWindow);
                         ToolBarWindowPatcher tbw = new ToolBarWindowPatcher(toolBarWindow, menuWriteSettingsContextWindow);
+                        LoadTranslation();
                         PatchRegister.DoPatching();
                         while (predictionWindow is null) ;
                         PatchRegister.DoPredictionPatching(predictionWindow);
+                        Terminal.Print($"Language: {Translations.GetString("Language")}\n");
                     });
                     thread.Start();
                 } else {

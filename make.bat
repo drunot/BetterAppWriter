@@ -133,11 +133,11 @@ if "%~1"=="" (%msbuild% BetterAppWriter.sln -property:Configuration=Debug /p:Pla
 EXIT /B 0
 
 :get_all_build_files
-set files=("nlp_loader\build\Release\nlp.dll" "Lib\nlp.dll" "sharp_injector\bin\Debug\Microsoft.Xaml.Behaviors.dll" "Microsoft.Xaml.Behaviors.dll" "sharp_injector\bin\Debug\sharp_injector.dll" "Lib\sharp_injector.dll")
+set files=("nlp_loader\build\Release\nlp.dll" "Lib\nlp.dll" "sharp_injector\bin\Debug\Microsoft.Xaml.Behaviors.dll" "Microsoft.Xaml.Behaviors.dll" "sharp_injector\bin\Debug\sharp_injector.dll" "Lib\sharp_injector.dll" "sharp_injector\bin\Debug\Translations\Dansk.lang" "Lib\Translations\Dansk.lang")
 EXIT /B 0
 
 :post_run_script
-if not exist "bin/Lib" (mkdir "bin/Lib")
+if not exist "bin/Lib/Translations" (mkdir "bin/Lib/Translations")
 call :get_all_build_files
 setlocal EnableDelayedExpansion 
 set /a counter=0

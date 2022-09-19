@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterAW"
         mc:Ignorable="d"
-        Title="{x:Static local:Translation.BetterAppWriterSettings}" Height="425" Width="400" ResizeMode="NoResize" WindowStyle="None" Background="Transparent" AllowsTransparency="True" >
+        Title="{Binding Path=BetterAppWriterSettings, Source={x:Static local:Translation.Instance}}" Height="425" Width="400" ResizeMode="NoResize" WindowStyle="None" Background="Transparent" AllowsTransparency="True" >
 
     <Window.Resources>
         <ResourceDictionary>
@@ -15,7 +15,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <local:BaseWindowControl Title="{x:Static local:Translation.BetterAppWriterSettings}" >
+    <local:BaseWindowControl Title="{Binding Path=BetterAppWriterSettings, Source={x:Static local:Translation.Instance}}" >
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="ContentPanel" >
             </StackPanel>

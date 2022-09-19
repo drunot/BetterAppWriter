@@ -76,7 +76,7 @@ namespace sharp_injector.Patches {
                     try {
                         StackPanel ItemsPanel = (StackPanel)((FieldInfo)t.GetMember("Items", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(menuContextMenuWindow_);
                         Label bawVersion = new Label();
-                        bawVersion.Content = string.Format(Translation.BetterAppWriterVersion, $"{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Major}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Minor}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Build}");
+                        bawVersion.Content = string.Format(Translation.Instance.BetterAppWriterVersion, $"{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Major}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Minor}.{typeof(MenuContextMenuPatcher).Assembly.GetName().Version.Build}");
                         bawVersion.Margin = new Thickness(6, 0, 0, 0);
                         bawVersion.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#999999"));
                         bawVersion.HorizontalAlignment = HorizontalAlignment.Left;
@@ -108,7 +108,7 @@ namespace sharp_injector.Patches {
             }
         }
         public void Patch() {
-            AddContentMenuItem(Translation.BetterAppWriterSettings, "/BetterAW;component/Images/Settings.xaml", "PredictionItems");
+            AddContentMenuItem(Translation.Instance.BetterAppWriterSettings, "/BetterAW;component/Images/Settings.xaml", "PredictionItems");
             AddBAWVersion();
             // Show Wizkids own admin tools.
             //StackPanel AdminTools = (StackPanel)((FieldInfo)menuContextMenuWindow_.GetType().GetMember("AdminTools", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)[0]).GetValue(menuContextMenuWindow_);

@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.5.0
+
+### Features
+
+- Now the AppWriter Toolbar now moves up or down if the cursor is underneath it.
+- The program now supports multiple languages. It defaults to English but if the language that is selected as the display language in appWriter exits, then it uses that language instead.
+- A miscellaneous program for creation and editing translations is created.
+- Danish translation added.
+
 ## Version 0.4.0
 
 ### Features

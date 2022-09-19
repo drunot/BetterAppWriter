@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DictionaryHandler", "Dictio
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinAPIHooks", "WinAPIHooks\WinAPIHooks.vcxproj", "{52895DDF-268D-48DB-8255-62FBA1F1764A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TranslationCreator", "TranslationCreator\TranslationCreator.csproj", "{64805B07-AD40-495A-84D5-8F843885A6D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,17 @@ Global
 		{52895DDF-268D-48DB-8255-62FBA1F1764A}.Release|x64.Build.0 = Release|x64
 		{52895DDF-268D-48DB-8255-62FBA1F1764A}.Release|x86.ActiveCfg = Release|Win32
 		{52895DDF-268D-48DB-8255-62FBA1F1764A}.Release|x86.Build.0 = Release|Win32
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|x64.ActiveCfg = Release|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|x64.Build.0 = Release|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|x86.ActiveCfg = Release|Any CPU
+		{64805B07-AD40-495A-84D5-8F843885A6D8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

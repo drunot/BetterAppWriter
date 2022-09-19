@@ -26,7 +26,7 @@ namespace sharp_injector.Patches {
         }
 
         private static readonly Events.PrioritiesedEvent<Events.MouseHookEventArgs>.EventDelegate dragHandler = (s, e) => {
-            if (movementEnabled) { 
+            if (movementEnabled) {
                 (_toolbarWindow as Window).Dispatcher.Invoke(() => {
                     WindowInteropHelper toolWinIntHelper = new WindowInteropHelper(_toolbarWindow as Window);
 
@@ -55,9 +55,9 @@ namespace sharp_injector.Patches {
                     try {
                         var sp = (StackPanel)Helpers.TreeSearcher.getObjectFromWindow((DependencyObject)_writeWindow, (obj) => obj.GetType() == typeof(StackPanel));
                         if (sp != null) {
-                            var ToolbarSeparator = Helpers.ContextMenuItemHelper.CreateStringSeparator(BetterAW.Translation.Toolbar);
+                            var ToolbarSeparator = Helpers.ContextMenuItemHelper.CreateStringSeparator(BetterAW.Translation.Instance.Toolbar);
                             sp.Children.Add(ToolbarSeparator);
-                            var ToolbarContextMenuItem = Helpers.ContextMenuItemHelper.CreateContextMenuItem(BetterAW.Translation.ToolbarAvoidCarret);
+                            var ToolbarContextMenuItem = Helpers.ContextMenuItemHelper.CreateContextMenuItem(BetterAW.Translation.Instance.ToolbarAvoidTextCursor);
                             ToolbarContextMenuItem.PreviewMouseLeftButtonDown += (sender, e) => {
                                 movementEnabled = !movementEnabled;
                                 Helpers.Settings.SetSetting("ToolbarAvoidCarret", movementEnabled);
@@ -75,7 +75,7 @@ namespace sharp_injector.Patches {
                         // Move tool bar window.
                         (_toolbarWindow as Window).Dispatcher.Invoke(() => {
                             WindowInteropHelper toolWinIntHelper = new WindowInteropHelper(_toolbarWindow as Window);
-                            Terminal.Print($"Window moved? {Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle())}\n");
+                            Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle());
                         });
                     }
                 };
@@ -84,7 +84,7 @@ namespace sharp_injector.Patches {
                         // Move tool bar window.
                         (_toolbarWindow as Window).Dispatcher.Invoke(() => {
                             WindowInteropHelper toolWinIntHelper = new WindowInteropHelper(_toolbarWindow as Window);
-                            Terminal.Print($"Window moved? {Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle())}\n");
+                            Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle());
                         });
                     }
                 };
@@ -101,7 +101,7 @@ namespace sharp_injector.Patches {
                         // Move tool bar window.
                         (_toolbarWindow as Window).Dispatcher.Invoke(() => {
                             WindowInteropHelper toolWinIntHelper = new WindowInteropHelper(_toolbarWindow as Window);
-                            Terminal.Print($"Window moved? {Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle())}\n");
+                            Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle());
                         });
                     }
                 };
