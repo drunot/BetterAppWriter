@@ -15,7 +15,7 @@ using BetterAW.Helpers;
 namespace sharp_injector.Helpers {
 
     public static class WindowsHIDHooks {
-        public static event KeyUpHookEventHandler KeyUpHook;
+        public static PrioritiesedEvent<KeyUpHookEventArgs> KeyUpHook = new PrioritiesedEvent<KeyUpHookEventArgs>();
         public static PrioritiesedEvent<KeyDownHookEventArgs> KeyDownHook = new PrioritiesedEvent<KeyDownHookEventArgs>();
         public static PrioritiesedEvent<MouseHookEventArgs> MouseLButtonDownHook = new PrioritiesedEvent<MouseHookEventArgs>();
         public static PrioritiesedEvent<MouseHookEventArgs> MouseLButtonUpHook = new PrioritiesedEvent<MouseHookEventArgs>();
@@ -144,9 +144,7 @@ namespace sharp_injector.Helpers {
                             pressedKeys = new SortedSet<Keys>(pressedKeys.Where(x => (GetAsyncKeyState((int)x) & KEY_DOWN_MASK) != 0));
                             pressedKeys.Remove((Keys)vkCode);
                             // If key up event is not null, invoke it.
-                            if (KeyUpHook != null) {
-                                KeyUpHook(null, new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys));
-                            }
+                            KeyUpHook.Invoke(null, new KeyUpHookEventArgs((Keys)vkCode, lastPressedKeys));
                             lastPressedKeys = pressedKeys;
                         }
                         break;

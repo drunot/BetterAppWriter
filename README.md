@@ -34,13 +34,14 @@ The other button in the `Better AppWriter Settings` is a terminal for developers
 
 ## Planned features
 
-These are the currently planned features. This list is not final, and features might be added and/or removed. Nor is a timeline for when a feature will be implemented given:
+These are the currently planned features. This list is not final, and features might be added and/or removed to the list. There is no timeline for when a feature will be implemented:
 
 - Additional shortcuts e.g., for increasing/decreasing the reading speed.
+- Feature to hold a key to hide the prediction window temporarily while the key is pressed.
 
 ## Building
 
-Since CMake still does not support COM references in C# project this project uses a custom build pipeline, where some of the projects are from CMake and others comes from a Visual Studio 2022 solution.
+Since CMake still does not support COM references in C# projects this project uses a custom build pipeline, where some of the projects are from CMake and others comes from a Visual Studio 2022 solution.
 
 To build the project run:
 

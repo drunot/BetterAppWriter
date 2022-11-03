@@ -40,7 +40,7 @@ namespace BetterAW {
         private void DragMove() {
             try {
                 Window.GetWindow(this).DragMove();
-            } catch (InvalidOperationException e) {
+            } catch (InvalidOperationException) {
 
             }
         }

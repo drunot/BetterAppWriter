@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.5.1
+
+### Bugfixes
+
+- Fixed various bugs with the prediction window and keyboard shortcuts.
+- Updated injected code to work with changes made to AppWriter in version 2.22.0.
+
 ## Version 0.5.0
 
 ### Features

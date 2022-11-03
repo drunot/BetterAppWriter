@@ -100,6 +100,9 @@ namespace sharp_injector.Patches {
             if (lhs is null) {
                 return !(rhs is null);
             }
+            if (rhs is null) {
+                return false;
+            }
             if (lhs.KeyBinding is null) {
                 return !(rhs.KeyBinding is null);
             }
@@ -138,6 +141,9 @@ namespace sharp_injector.Patches {
         public static bool operator ==(KeyboardInternalShortcutInfo lhs, KeyboardInternalShortcutInfo rhs) {
             if (lhs is null) {
                 return rhs is null;
+            }
+            if (rhs is null) {
+                return false;
             }
             if (lhs.KeyBinding is null) {
                 return rhs.KeyBinding is null;
@@ -256,24 +262,19 @@ namespace sharp_injector.Patches {
                 !(keyboardInternalShortcutInfo.shotcutAddPostamble is null)) {
                 SpecialKeyboardShortcuts.Add(keyboardInternalShortcutInfo);
             }
-            Terminal.Print("Test!\n");
             // If preamble is null or the preamble returns true. Add the shortcut normally.
             if (keyboardInternalShortcutInfo.shotcutAddPreamble is null || keyboardInternalShortcutInfo.shotcutAddPreamble(keyboardInternalShortcutInfo)) {
-                Terminal.Print("shotcutAddPreamble!\n");
                 // Check if other shortcuts uses same keybinding.
                 // Could probably be done with RegisteredKeyboardShortcuts.Contains.
                 var shortcut = RegisteredKeyboardShortcuts.FirstOrDefault((s) => s.KeyBinding.SetEquals(keyboardInternalShortcutInfo.KeyBinding));
-                if(shortcut != default(KeyboardInternalShortcutInfo)) {
-                    Terminal.Print("Other removed!\n");
+                if (shortcut != default(KeyboardInternalShortcutInfo)) {
                     RemoveShortcut(shortcut.Name, false);
                 }
                 // If this function already have a shortcut. Remove it.
                 shortcut = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == keyboardInternalShortcutInfo.Name);
                 if (shortcut != default(KeyboardInternalShortcutInfo)) {
-                    Terminal.Print("Old removed!\n");
                     RemoveShortcut(shortcut.Name, false);
                 }
-                Terminal.Print("Reregister!\n");
                 // Registor the new shortcut.
                 RegisteredKeyboardShortcuts.Add(keyboardInternalShortcutInfo);
                 WindowsHIDHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(keyboardInternalShortcutInfo.KeyboardEvent, priority);
@@ -470,10 +471,10 @@ namespace sharp_injector.Patches {
 
         private static void RemoveShortcut(string name, bool saveSettubgs = true) {
             var elem = SpecialKeyboardShortcuts.FirstOrDefault(x => x.Name == name);
-            if(elem == default(KeyboardInternalShortcutInfo)) {
+            if (elem == default(KeyboardInternalShortcutInfo)) {
                 elem = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == name);
             }
-            
+
             if (elem != default(KeyboardInternalShortcutInfo)) {
                 if (elem.shotcutRemovePreamble is null || elem.shotcutRemovePreamble(elem)) {
                     if (elem != default(KeyboardInternalShortcutInfo)) {
@@ -488,7 +489,7 @@ namespace sharp_injector.Patches {
                 }
                 RegisteredKeyboardShortcuts.Remove(elem);
                 KeyboardShortcuts.RemoveKeybordShortcut(elem.Name);
-            } 
+            }
         }
 
 
@@ -518,7 +519,7 @@ namespace sharp_injector.Patches {
                             ((Window)predictionWindow_).Dispatcher.Invoke(() => {
                                 Helpers.PredictionWindowHelper.SelectPredictionIndex((Window)predictionWindow_, number - 1);
                             });
-                        Helpers.WindowsHIDHooks.KeyUpHook += internal_insert_shortcut;
+                        Helpers.WindowsHIDHooks.KeyUpHook += new PrioritiesedEvent<KeyUpHookEventArgs>.Event(internal_insert_shortcut, 1);
                     } catch (Exception ex) {
                         Terminal.Print($"{ex}\n");
                         return false;
@@ -569,6 +570,10 @@ namespace sharp_injector.Patches {
             // Add next prediction shortcut.
             KeyboardInternalShortcutInfo nextPredictionInfo = new KeyboardInternalShortcutInfo("NextPrediction");
             nextPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateDown;
+            // Stop navigation in Prediction window on unhandled key ups.
+            nextPredictionInfo.shotcutAddPostamble = (self) => {
+                UpdateDeselectUpFunction();
+            };
             nextPredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.IncrementSelection((Window)predictionWindow_);
@@ -581,6 +586,10 @@ namespace sharp_injector.Patches {
             // Add previus prediction shortcut.
             KeyboardInternalShortcutInfo prevPredictionInfo = new KeyboardInternalShortcutInfo("PrevPrediction");
             prevPredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateUp;
+            // Stop navigation in Prediction window on unhandled key ups.
+            prevPredictionInfo.shotcutAddPostamble = (self) => {
+                UpdateDeselectUpFunction();
+            };
             prevPredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.DecrementSelection((Window)predictionWindow_);
@@ -593,6 +602,10 @@ namespace sharp_injector.Patches {
             // Add next page prediction shortcut.
             KeyboardInternalShortcutInfo nextPagePredictionInfo = new KeyboardInternalShortcutInfo("NextPagePrediction");
             nextPagePredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateRight;
+            // Stop navigation in Prediction window on unhandled key ups.
+            nextPagePredictionInfo.shotcutAddPostamble = (self) => {
+                UpdateDeselectUpFunction();
+            };
             nextPagePredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.TogglePredictioTypeOrIncrement((Window)predictionWindow_);
@@ -605,6 +618,10 @@ namespace sharp_injector.Patches {
             // Add previus page prediction shortcut.
             KeyboardInternalShortcutInfo prevPagePredictionInfo = new KeyboardInternalShortcutInfo("PrevPagePrediction");
             prevPagePredictionInfo.ShortcutText = Translation.Instance.ShortcutPredictionNavigateLeft;
+            // Stop navigation in Prediction window on unhandled key ups.
+            prevPagePredictionInfo.shotcutAddPostamble = (self) => {
+                UpdateDeselectUpFunction();
+            };
             prevPagePredictionInfo.UnderLayingEvent = (self) => {
                 if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
                     Helpers.PredictionWindowHelper.TogglePredictioTypeOrDecrement((Window)predictionWindow_);
@@ -667,14 +684,12 @@ namespace sharp_injector.Patches {
             };
             cancelSelectedPredictionInfo.ShortcutCondition = (self, sender, eventArgs) => self.KeyBinding.Contains(eventArgs.DownKey) && !eventArgs.Handled;
             cancelSelectedPredictionInfo.shotcutAddPreamble = (self) => {
-                if(cancelSelectedPredictionInfo.KeyBinding != null) {
+                if (cancelSelectedPredictionInfo.KeyBinding != null) {
                     // If this function already have a shortcut. Remove it.
                     var shortcut = RegisteredKeyboardShortcuts.FirstOrDefault(x => x.Name == self.Name);
                     if (shortcut != default(KeyboardInternalShortcutInfo)) {
-                        Terminal.Print("Old removed!\n");
                         RemoveShortcut(shortcut.Name, false);
                     }
-                    Terminal.Print("Reregister!\n");
                     // Registor the new shortcut.
                     RegisteredKeyboardShortcuts.Add(self);
                     WindowsHIDHooks.KeyDownHook += new PrioritiesedEvent<KeyDownHookEventArgs>.Event(self.KeyboardEvent, 1);
@@ -682,19 +697,49 @@ namespace sharp_injector.Patches {
                 }
                 return false;
             };
-            
-            //cancelSelectedPredictionInfo.shotcutRemovePostamble = (self) => {
-            //    if (!(CancelInsertionEventHandler is null)) {
-            //        Helpers.WindowsKeyboardHooks.KeyDownHook -= cancelSelectedPredictionInfo.KeyboardEvent;
-            //    }
-            //};
             AddShortcut(pwCategoryName, cancelSelectedPredictionInfo, new SortedSet<Keys>() { Keys.Escape });
+        }
+
+        private static PrioritiesedEvent<KeyUpHookEventArgs>.EventDelegate DeselectUp = (s, e) => {}; 
+
+        private static void UpdateDeselectUpFunction() {
+            WindowsHIDHooks.KeyUpHook -= DeselectUp;
+            HashSet<Keys> allKeys = new HashSet<Keys>();
+            var prevPagePredictionInfo = RegisteredKeyboardShortcuts.FirstOrDefault(item => item.Name == "PrevPagePrediction");
+            var nextPagePredictionInfo = RegisteredKeyboardShortcuts.FirstOrDefault(item => item.Name == "NextPagePrediction");
+            var prevPredictionInfo = RegisteredKeyboardShortcuts.FirstOrDefault(item => item.Name == "PrevPrediction");
+            var nextPredictionInfo = RegisteredKeyboardShortcuts.FirstOrDefault(item => item.Name == "NextPrediction");
+            if (prevPagePredictionInfo != default) {
+                allKeys.UnionWith(prevPagePredictionInfo.KeyBinding);
+            }
+            if (nextPagePredictionInfo != default) {
+                allKeys.UnionWith(nextPagePredictionInfo.KeyBinding);
+            }
+            if (prevPredictionInfo != default) {
+                allKeys.UnionWith(prevPredictionInfo.KeyBinding);
+            }
+            if (nextPredictionInfo != default) {
+                allKeys.UnionWith(nextPredictionInfo.KeyBinding);
+            }
+            DeselectUp = (s, e) => {
+                if (!(predictionWindow_ is null) && ((Window)predictionWindow_).Visibility == Visibility.Visible) {
+                    (predictionWindow_ as Window).Dispatcher.Invoke(() => {
+                        var keyPreviuslyPressed = e.KeysPressed;
+                        keyPreviuslyPressed.Add(e.UpKey);
+                        if (!keyPreviuslyPressed.IsSubsetOf(allKeys)) {
+                            Helpers.PredictionWindowHelper.DeselectPrediction((Window)predictionWindow_);
+                        }
+
+
+                    });
+                }
+            };
+            WindowsHIDHooks.KeyUpHook += new PrioritiesedEvent<KeyUpHookEventArgs>.Event(DeselectUp, 99);
         }
 
         private void AddShortcutHandler(object sender, ShortcutAddEventArgs eventArgs) {
             void private_KeyUpHook(object s, Events.KeyUpHookEventArgs e) {
                 try {
-                    Terminal.Print("Add Happened?\n");
                     var sc = e.KeysPressed;
                     sc.Add(e.UpKey);
                     // On key up registor keyboard shortcut.
@@ -711,12 +756,11 @@ namespace sharp_injector.Patches {
                 Helpers.WindowsHIDHooks.DisableShortcuts = false;
             };
 
-            WindowsHIDHooks.KeyUpHook += private_KeyUpHook;
+            WindowsHIDHooks.KeyUpHook += new PrioritiesedEvent<KeyUpHookEventArgs>.Event(private_KeyUpHook, 1);
             WindowsHIDHooks.DisableShortcuts = true;
         }
 
         private void RemoveShortcutHandler(object sender, ShortcutRemoveEventArgs eventArgs) {
-            Terminal.Print("Remove Happened?\n");
             RemoveShortcut(eventArgs.ShortcutName, true);
         }
 
@@ -731,14 +775,14 @@ namespace sharp_injector.Patches {
                 FindShortcuts("_writeWindow", "WriteSettingsBtn");
                 FindShortcuts("_readWindow", "ReadSettingsBtn");
                 LanguageToggleShortcuts();
-                Terminal.Print("AvailableKeyboardShortcuts\n");
+                Terminal.Print("-- Available Keyboard Shortcuts --\n");
 
                 foreach (var shortcut in AvailableKeyboardShortcuts) {
                     Terminal.Print($"{shortcut.Name}\n");
 
 
                 }
-                Terminal.Print("RegisteredKeyboardShortcuts\n");
+                Terminal.Print("-- Registered Keyboard Shortcuts --\n");
                 foreach (var shortcut in RegisteredKeyboardShortcuts) {
                     Terminal.Print($"{shortcut.Name}\n");
                 }

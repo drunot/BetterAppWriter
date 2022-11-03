@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.Reflection.Emit;
 using System.Windows.Interop;
 using System.Windows.Input;
+using sharp_injector.Events;
 
 namespace sharp_injector.Patches {
     internal class ToolBarWindowPatcher : IPatcher {
@@ -96,7 +97,7 @@ namespace sharp_injector.Patches {
                 Helpers.WindowsHIDHooks.MouseMButtonDownHook += new Events.PrioritiesedEvent<Events.MouseHookEventArgs>.Event(handler, 2);
                 Helpers.WindowsHIDHooks.MouseMButtonUpHook += new Events.PrioritiesedEvent<Events.MouseHookEventArgs>.Event(handler, 2);
                 Helpers.WindowsHIDHooks.KeyDownHook += new Events.PrioritiesedEvent<Events.KeyDownHookEventArgs>.Event(downHandler, 2);
-                Helpers.WindowsHIDHooks.KeyUpHook += (s, e) => {
+                Helpers.WindowsHIDHooks.KeyUpHook += new PrioritiesedEvent<KeyUpHookEventArgs>.Event((s, e) => {
                     if (movementEnabled) {
                         // Move tool bar window.
                         (_toolbarWindow as Window).Dispatcher.Invoke(() => {
@@ -104,7 +105,7 @@ namespace sharp_injector.Patches {
                             Helpers.CarretPosition.moveWinIfObstructing(toolWinIntHelper.EnsureHandle());
                         });
                     }
-                };
+                }, 1);
                 var mOnMouseLeftButtonDown_prefix = typeof(ToolBarWindowPatcher).GetMethod(nameof(OnMouseLeftButtonDown_prefix), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 var OnMouseLeftButtonDown = _toolbarWindow.GetType().GetMethod("OnMouseLeftButtonDown", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 PatchRegister.HarmonyInstance.Patch(OnMouseLeftButtonDown, new HarmonyMethod(mOnMouseLeftButtonDown_prefix));
